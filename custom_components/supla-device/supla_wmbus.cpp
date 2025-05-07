@@ -66,14 +66,13 @@ namespace esphome
         }
       
       this->display_manager->sync();
-
-      if (this->meters.size() == 0)
-        SuplaDevice.enterConfigMode();
+      
     }
 
     void Component::loop()
     {
       SuplaDevice.iterate();
+      Supla::WebServer::Instance()->start();
 
       auto status = SuplaDevice.getCurrentStatus();
       std::string status_str = "SuplaDevice status: " + std::to_string(status);
