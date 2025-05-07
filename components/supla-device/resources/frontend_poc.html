@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <style>
+      .box {
+        border: 1px solid #000;
+        padding: 10px;
+        margin: 10px;
+      }
+    </style>
+    <script src="frontend.js"></script>
+  </head>
+  <body>
+    <form id="some_form" method="post">
+      <div class="box">
+        <h3>wM-Bus Meters</h3>
+
+        <div class="box meter">
+          <input class="meter_cfg" />
+          <h3>Meter</h3>
+          <div class="form-field">
+            <label>
+              ID
+              <input type="number" class="meter_field" />
+            </label>
+          </div>
+
+          <div class="form-field">
+            <label>
+              Driver
+              <select class="meter_field">
+                <option></option>
+                <option>amiplus</option>
+                <option>apator162</option>
+              </select>
+            </label>
+          </div>
+          <div class="form-field">
+            <label>
+              Key
+              <input type="text" class="meter_field" />
+            </label>
+          </div>
+          <div class="form-field">
+            <label>
+              Field
+              <select class="meter_field extra">
+                <option></option>
+                <option>total_m3</option>
+                <option>current_m3</option>
+              </select>
+            </label>
+          </div>
+          <button type="button" onclick="remove_meter()">Remove</button>
+        </div>
+        <button type="button" onclick="add_meter()">Add Meter</button>
+      </div>
+    </form>
+  </body>
+
+</html>
