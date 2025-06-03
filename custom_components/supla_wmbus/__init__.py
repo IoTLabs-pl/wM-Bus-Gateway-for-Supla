@@ -8,8 +8,6 @@ from re import compile, Match
 from os import rename
 import logging
 
-from .resources import generate_resources
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -22,14 +20,14 @@ SuplaComponent = cg.esphome_ns.namespace("supla_wmbus_reader").class_(
 )
 wmbus_radio = cg.esphome_ns.namespace("wmbus_radio").class_("Radio", cg.Component)
 
-wmbus_reader_ns = cg.esphome_ns.namespace("wmbus_reader")
-ScreenManager = wmbus_reader_ns.class_("DisplayScreenManager")
+wmbus_gateway_gui_ns = cg.esphome_ns.namespace("wmbus_gateway_gui")
+DisplayManager = wmbus_gateway_gui_ns.class_("DisplayManager")
 
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(SuplaComponent),
         cv.GenerateID("radio_id"): cv.use_id(wmbus_radio),
-        cv.GenerateID("manager_id"): cv.use_id(ScreenManager),
+        cv.GenerateID("manager_id"): cv.use_id(DisplayManager),
     }
 )
 

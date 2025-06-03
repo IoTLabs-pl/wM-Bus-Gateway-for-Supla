@@ -1,22 +1,20 @@
 #pragma once
 #include "esphome/core/component.h"
 
-#include "esphome/components/wmbus_common/meters.h"
 #include "esphome/components/wmbus_radio/component.h"
-#include "esphome/components/wmbus_reader/wmbus_reader.h"
+#include "esphome/components/wmbus_gateway_gui/display_manager.h"
 
-#include <SuplaDevice.h>
+#include "SuplaDevice.h"
+#include "supla/network/html_element.h"
 
-#include <supla/sensor/general_purpose_meter.h>
-#include <supla/sensor/virtual_impulse_counter.h>
-#include <supla/network/html_element.h>
+#include "binds.h"
+
 
 namespace esphome
 {
     namespace supla_wmbus_reader
     {
         class Component;
-        class Meter;
 
         class Frontend : public Supla::HtmlElement
         {
@@ -29,29 +27,23 @@ namespace esphome
 
         protected:
             Component *parent_;
-            std::vector<Meter *> post_meters;
         };
 
         class Component : public esphome::Component
         {
             friend class Frontend;
-            friend class Meter;
 
         public:
             Component() : frontend{this} {};
             void setup() override;
             void loop() override;
             void set_radio(wmbus_radio::Radio *radio) { this->radio = radio; };
-            void set_display_manager(wmbus_reader::DisplayScreenManager *manager) { this->display_manager = manager; };
-
-            float get_setup_priority() const { return setup_priority::AFTER_CONNECTION - 1; }
+            void set_display_manager(wmbus_gateway_gui::DisplayManager *manager) { this->display_manager = manager; };
 
         protected:
-            std::vector<Meter *> get_stored_meters();
-
-            std::vector<Meter *> meters;
             wmbus_radio::Radio *radio;
-            wmbus_reader::DisplayScreenManager *display_manager;
+            Config config_;
+            wmbus_gateway_gui::DisplayManager *display_manager;
             Frontend frontend;
         };
 

@@ -3,17 +3,15 @@
 #include "esphome/core/log.h"
 #include "esphome/components/wmbus_common/meters.h"
 
-#include <supla/network/html/device_info.h>
-#include <supla/network/html/protocol_parameters.h>
-#include <supla/network/html/wifi_parameters.h>
-#include <supla/device/supla_ca_cert.h>
+#include "supla/network/html/device_info.h"
+#include "supla/network/html/protocol_parameters.h"
+#include "supla/network/html/wifi_parameters.h"
+#include "supla/device/supla_ca_cert.h"
 
-#include <esp_idf_web_server.h>
-#include <esp_idf_wifi.h>
-#include <esp_log.h>
-#include <nvs_config.h>
+#include "esp_idf_web_server.h"
+#include "esp_idf_wifi.h"
+#include "nvs_config.h"
 
-#include "meter.h"
 #include "resources.h"
 
 namespace esphome
@@ -53,19 +51,15 @@ namespace esphome
       SuplaDevice.setSwVersion("v" ESPHOME_PROJECT_VERSION);
       SuplaDevice.setCustomHostnamePrefix(name + i + 1);
       SuplaDevice.setMacLengthInHostname(3);
-
       SuplaDevice.begin();
 
-      for (auto &meter : this->get_stored_meters())
-        if (!meter->get_id().empty())
-        {
-          meter->set_radio(this->radio);
-          for (auto &sensor : meter->sensors)
-            this->display_manager->add_sensor(sensor);
-          this->meters.push_back(meter);
-        }
-      
-      this->display_manager->sync();
+      this->config_.pull();
+      auto meters = Meter::create_from_config(this->config_);
+
+      ESP_LOGE("WM", "Found %d meters", meters.size());
+
+      for (auto meter : meters)
+          meter->attach_hardware(this->radio, this->display_manager);
       
     }
 
@@ -125,45 +119,14 @@ namespace esphome
       }
     };
 
-    std::vector<Meter *> Component::get_stored_meters()
-    {
-      uint8_t i = 0;
-      std::vector<Meter *> meters;
-
-      char key[SUPLA_CONFIG_MAX_KEY_SIZE];
-      char value[100];
-
-      auto cfg = Supla::Storage::ConfigInstance();
-
-      while (cfg)
-      {
-        Supla::Config::generateKey(key, i, "meter");
-        if (!cfg->getString(key, value, sizeof(value) - 1))
-          break;
-        meters.push_back(Meter::deserialize(value));
-        i += 1;
-      }
-
-      return meters;
-    }
-
     void Frontend::send(Supla::WebSender *sender)
     {
       sender->send("<div class=\"box\">");
       sender->send(frontend_script);
       sender->send("<h3>wM-Bus Meters</h3>");
 
-      auto meters = this->parent_->get_stored_meters();
-      if (meters.size() == 0)
-        meters.push_back(new Meter{});
-
-      for (auto &meter : meters)
-      {
-        meter->render_html_config(sender);
-        delete meter;
-      }
-
-      ESP_LOGI("WM", "after loop");
+      this->parent_->config_.pull();
+      this->parent_->config_.render_html(sender); 
 
       sender->send(
           "<button type=button onclick=add_meter() >Add Meter</button>");
@@ -172,17 +135,11 @@ namespace esphome
 
     bool Frontend::handleResponse(const char *key, const char *value)
     {
-      ESP_LOGD("WM", "Got %s->%s", key, value);
+      ESP_LOGD("WM", "POST: Got %s->%s", key, value);
 
       if (strncmp(key, "meter_", sizeof("meter_") - 1) == 0)
       {
-        key += sizeof("meter_") - 1;
-
-        auto id = atoi(key);
-
-        ESP_LOGI("WM", "Processing meter %d", id);
-
-        this->post_meters.push_back(Meter::deserialize(value));
+        this->parent_->config_.add_entry(value);
         return true;
       }
       return false;
@@ -190,29 +147,7 @@ namespace esphome
 
     void Frontend::onProcessingEnd()
     {
-      auto cfg = Supla::Storage::ConfigInstance();
-      if (cfg)
-      {
-        uint8_t i;
-        char key[SUPLA_CONFIG_MAX_KEY_SIZE];
-
-        for (i = 0; i < this->post_meters.size(); i++)
-        {
-          Supla::Config::generateKey(key, i, "meter");
-          cfg->setString(key, this->post_meters[i]->serialize().c_str());
-        }
-
-        while (true)
-        {
-          Supla::Config::generateKey(key, i, "meter");
-          if (!cfg->eraseKey(key))
-            break;
-        }
-      }
-
-      for (auto &meter : this->post_meters)
-        delete meter;
-      this->post_meters = {};
+      this->parent_->config_.push();
     }
   };
 

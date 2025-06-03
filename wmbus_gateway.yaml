@@ -1,8 +1,9 @@
-esphome:
-  name: wmbus-supla
-
 packages:
-  wmbus_reader_common: github://IoTLabs-pl/wM-Bus-Gateway/packages/wmbus_reader_common.yaml
+  core: !include
+    file: /home/kuba/wmbus/wM-Bus-Gateway/packages/wmbus_gateway_core.yaml
+
+esphome:
+  name: supla-wmbus
 
 esp32:
   framework:
@@ -15,36 +16,37 @@ esp32:
       CONFIG_ESP_TLS_INSECURE: "y"
       CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY: "y"
 
-image:
-  - id: qr_code
-    file: resources/qrcode.png
-    type: binary
-    invert_alpha: True
-
-supla-device:
-
 mdns:
   disabled: True
+
+wmbus_radio:
+  on_frame:
+    - then:
+        - logger.log:
+            level: WARN
+            format: "Meter ID: %s"
+            args: ["frame->meter_id().c_str()"]
+        - logger.log:
+            level: WARN
+            format: "Frame: https://wmbusmeters.org/analyze/%s"
+            args: ["frame->as_hex().c_str()"]
 
 wmbus_common:
   drivers: all
 
 wmbus_meter:
-  
-wmbus_radio:
-  on_frame:
-    then:
-      - logger.log:
-          level: WARN
-          format: "Meter ID: %s"
-          args: ["frame->meter_id().c_str()"]
-      - logger.log:
-          level: WARN
-          format: "Frame: https://wmbusmeters.org/analyze/%s"
-          args: ["frame->as_hex().c_str()"]
+
+supla_wmbus:
+
+image:
+  - id: !remove qr_code
+  - id: qr_code
+    file: resources/qrcode.png
+    type: binary
+    invert_alpha: True
 
 binary_sensor:
-  - id: !extend wmbus_reader_ext_button
+  - id: !extend ext_button
     on_multi_click:
       - timing:
           - ON for at least 5s
@@ -56,4 +58,3 @@ binary_sensor:
           - lambda: |-
               SuplaDevice.resetToFactorySettings();
               SuplaDevice.softRestart();
-
