@@ -54,12 +54,12 @@ namespace esphome
       SuplaDevice.begin();
 
       this->config_.pull();
-      auto meters = Meter::create_from_config(this->config_);
+      this->meters = Meter::create_from_config(this->config_);
 
-      ESP_LOGE("WM", "Found %d meters", meters.size());
+      ESP_LOGE("WM", "Found %d meters", this->meters.size());
 
-      for (auto meter : meters)
-          meter->attach_hardware(this->radio, this->display_manager);
+      for (auto meter : this->meters)
+        meter->build_sensors(this->radio, this->display_manager);
       
     }
 
@@ -126,7 +126,7 @@ namespace esphome
       sender->send("<h3>wM-Bus Meters</h3>");
 
       this->parent_->config_.pull();
-      this->parent_->config_.render_html(sender); 
+      this->parent_->config_.render_html(sender);
 
       sender->send(
           "<button type=button onclick=add_meter() >Add Meter</button>");
@@ -139,7 +139,7 @@ namespace esphome
 
       if (strncmp(key, "meter_", sizeof("meter_") - 1) == 0)
       {
-        this->parent_->config_.add_entry(value);
+        this->parent_->config_.enqueue_entry(value);
         return true;
       }
       return false;

@@ -41,6 +41,7 @@ namespace esphome
             void set_display_manager(wmbus_gateway_gui::DisplayManager *manager) { this->display_manager = manager; };
 
         protected:
+            std::list<Meter*> meters;
             wmbus_radio::Radio *radio;
             Config config_;
             wmbus_gateway_gui::DisplayManager *display_manager;
