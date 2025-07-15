@@ -1,0 +1,17 @@
+name: Check firmware build
+on: 
+    pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build firmware
+        id: build_firmware
+        uses: esphome/build-action@v7
+        with:
+          yaml-file: wmbus_gateway.yaml

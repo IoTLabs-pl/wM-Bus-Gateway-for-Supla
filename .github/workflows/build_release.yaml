@@ -1,12 +1,13 @@
-name: Build and store firmware
-on: 
-    pull_request:
-    release:
-      types:
-        - published
+name: Build release firmware
+on:
+  release:
+    types:
+      - published
 jobs:
   build_and_upload:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -14,12 +15,11 @@ jobs:
         id: build_firmware
         uses: esphome/build-action@v7
         with:
-          yaml-file: wmbus-gateway.yaml
+          yaml-file: wmbus_gateway.yaml
           complete-manifest: true
       - name: Upload binaries to release
-        if: ${{ github.event_name == 'release' }}
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{steps.build_firmware.outputs.name}}/*.{bin,json}
-                 
-
+          files: |
+            ${{ steps.build_firmware.outputs.name }}/*.factory.bin
+            ${{ steps.build_firmware.outputs.name }}/manifest.json

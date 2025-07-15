@@ -2,50 +2,38 @@
 #include "esphome/core/component.h"
 
 #include "esphome/components/wmbus_radio/component.h"
-#include "esphome/components/wmbus_gateway_gui/display_manager.h"
+#include "esphome/components/wmbus_gateway/display_manager.h"
+#include "esphome/components/script/script.h"
 
 #include "SuplaDevice.h"
-#include "supla/network/html_element.h"
 
-#include "binds.h"
-
+#include "aux_config.h"
+#include "config.h"
+#include "meter.h"
 
 namespace esphome
 {
     namespace supla_wmbus_reader
     {
-        class Component;
-
-        class Frontend : public Supla::HtmlElement
-        {
-        public:
-            Frontend(Component *parent) : Supla::HtmlElement(Supla::HTML_SECTION_PROTOCOL),
-                                          parent_{parent} {};
-            void send(Supla::WebSender *sender) override;
-            bool handleResponse(const char *key, const char *value) override;
-            void onProcessingEnd() override;
-
-        protected:
-            Component *parent_;
-        };
-
         class Component : public esphome::Component
         {
-            friend class Frontend;
 
         public:
-            Component() : frontend{this} {};
             void setup() override;
             void loop() override;
             void set_radio(wmbus_radio::Radio *radio) { this->radio = radio; };
-            void set_display_manager(wmbus_gateway_gui::DisplayManager *manager) { this->display_manager = manager; };
+            void set_display_manager(wmbus_gateway::DisplayManager *manager) { this->display_manager = manager; };
+            void set_blinker_script(script::Script<> *script) { this->blinker_script = script; };
 
         protected:
-            std::list<Meter*> meters;
+            void blink() const;
+
+            std::list<Meter *> meters;
             wmbus_radio::Radio *radio;
+            script::Script<> *blinker_script;
             Config config_;
-            wmbus_gateway_gui::DisplayManager *display_manager;
-            Frontend frontend;
+            AuxConfig aux_config_;
+            wmbus_gateway::DisplayManager *display_manager;
         };
 
     }

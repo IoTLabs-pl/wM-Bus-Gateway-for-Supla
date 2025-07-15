@@ -1,33 +1,38 @@
-from esphome import config_validation as cv, codegen as cg
-from esphome.core import TimePeriod
-from esphome.components.esp32 import add_idf_component
-from esphome.const import CONF_ID
-from esphome.git import clone_or_update
-from pathlib import Path
-from re import compile, Match
-from os import rename
 import logging
+from os import rename
+from pathlib import Path
+from re import Match, compile
+
+from esphome import codegen as cg
+from esphome import config_validation as cv
+from esphome.components.esp32 import add_idf_component
+from esphome.components.script import Script
+from esphome.components.wmbus_gateway import DisplayManager
+from esphome.components.wmbus_radio import RadioComponent
+from esphome.const import CONF_ID
+from esphome.core import TimePeriod
+from esphome.git import clone_or_update
 
 _LOGGER = logging.getLogger(__name__)
 
 
 COMPONENT_NAME = "supla-device"
 
+RADIO_ID = 'radio_id'
+DISPLAY_MANAGER_ID = 'manager_id'
+BLINKER_SCRIPT_ID = 'blinker_script_id'
 
 SuplaDevice = cg.global_ns.class_("SuplaDevice")
 SuplaComponent = cg.esphome_ns.namespace("supla_wmbus_reader").class_(
     "Component", cg.Component
 )
-wmbus_radio = cg.esphome_ns.namespace("wmbus_radio").class_("Radio", cg.Component)
-
-wmbus_gateway_gui_ns = cg.esphome_ns.namespace("wmbus_gateway_gui")
-DisplayManager = wmbus_gateway_gui_ns.class_("DisplayManager")
 
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(SuplaComponent),
-        cv.GenerateID("radio_id"): cv.use_id(wmbus_radio),
-        cv.GenerateID("manager_id"): cv.use_id(DisplayManager),
+        cv.GenerateID(RADIO_ID): cv.use_id(RadioComponent),
+        cv.GenerateID(DISPLAY_MANAGER_ID): cv.use_id(DisplayManager),
+        cv.GenerateID(BLINKER_SCRIPT_ID): cv.use_id(Script),
     }
 )
 
@@ -99,13 +104,12 @@ def prepare_component():
 
 
 async def to_code(config):
-    cg.add_define("USE_WMBUS_METER_SENSOR")
-
     prepare_component()
 
-    # generate_resources()
+    cg.add_define("USE_WMBUS_METER_SENSOR")
 
     var = cg.new_Pvariable(config[CONF_ID])
-    cg.add(var.set_radio(await cg.get_variable(config["radio_id"])))
-    cg.add(var.set_display_manager(await cg.get_variable(config["manager_id"])))
+    cg.add(var.set_radio(await cg.get_variable(config[RADIO_ID])))
+    cg.add(var.set_display_manager(await cg.get_variable(config[DISPLAY_MANAGER_ID])))
+    cg.add(var.set_blinker_script(await cg.get_variable(config[BLINKER_SCRIPT_ID])))
     await cg.register_component(var, config)

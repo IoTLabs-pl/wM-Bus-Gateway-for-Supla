@@ -1,6 +1,9 @@
 #include "supla_wmbus.h"
 
+#include <functional>
+
 #include "esphome/core/log.h"
+#include "esphome/core/application.h"
 #include "esphome/components/wmbus_common/meters.h"
 
 #include "supla/network/html/device_info.h"
@@ -11,8 +14,6 @@
 #include "esp_idf_web_server.h"
 #include "esp_idf_wifi.h"
 #include "nvs_config.h"
-
-#include "resources.h"
 
 namespace esphome
 {
@@ -39,34 +40,60 @@ namespace esphome
       SuplaDevice.setSuplaCACert(suplaCACert);
       SuplaDevice.setSupla3rdPartyCACert(supla3rdCACert);
 
-      uint8_t i;
-      static char name[] = ESPHOME_PROJECT_NAME;
-      for (i = 0; i < strlen(name); i++)
-        if (name[i] == '.')
-          break;
+      std::string name = ESPHOME_PROJECT_NAME;
+      // Find dot between IoTLabs and device name
+      size_t sep_position = name.find('.');
+      name[sep_position] = ' ';
 
-      name[i] = ' ';
+      std::string version = ESPHOME_PROJECT_VERSION;
+      // Remove leading 'v' and trailing '-supla' if present
+      version = version.substr(1, version.find('-', 1) - 1);
 
-      SuplaDevice.setName(name);
-      SuplaDevice.setSwVersion("v" ESPHOME_PROJECT_VERSION);
-      SuplaDevice.setCustomHostnamePrefix(name + i + 1);
+      SuplaDevice.setName(name.c_str());
+      SuplaDevice.setSwVersion(version.c_str());
+      SuplaDevice.setCustomHostnamePrefix(name.c_str() + sep_position + 1);
       SuplaDevice.setMacLengthInHostname(3);
       SuplaDevice.begin();
+      App.feed_wdt();
 
-      this->config_.pull();
-      this->meters = Meter::create_from_config(this->config_);
+      auto config_entries = this->config_.pull();
+      for (auto &entry : config_entries)
+      {
+        auto meter = entry.create_meter();
+        if (!meter)
+          continue;
 
-      ESP_LOGE("WM", "Found %d meters", this->meters.size());
+        meter->set_radio(this->radio);
 
-      for (auto meter : this->meters)
-        meter->build_sensors(this->radio, this->display_manager);
-      
+        for (auto &sensor : meter->create_sensors())
+          this->display_manager->add_sensor(&sensor);
+
+        this->meters.push_back(std::move(meter));
+      }
+
+      SuplaDevice.iterate();
+      App.feed_wdt();
+
+      auto aux_config = this->aux_config_.pull();
+
+      switch (aux_config.get_led_mode())
+      {
+      case AuxConfig::LEDMode::LED_ALWAYS:
+        this->radio->add_frame_handler(std::bind(&Component::blink, this));
+        break;
+      case AuxConfig::LEDMode::LED_MATCH:
+        for (const auto &meter : this->meters)
+          meter->on_telegram(std::bind(&Component::blink, this));
+        break;
+      }
+
+      if (aux_config.get_config_mode() == AuxConfig::ConfigMode::CONFIG_MODE_ALWAYS_ON)
+        Supla::WebServer::Instance()->start();
     }
 
     void Component::loop()
     {
       SuplaDevice.iterate();
-      Supla::WebServer::Instance()->start();
 
       auto status = SuplaDevice.getCurrentStatus();
       std::string status_str = "SuplaDevice status: " + std::to_string(status);
@@ -119,36 +146,11 @@ namespace esphome
       }
     };
 
-    void Frontend::send(Supla::WebSender *sender)
+    void Component::blink() const
     {
-      sender->send("<div class=\"box\">");
-      sender->send(frontend_script);
-      sender->send("<h3>wM-Bus Meters</h3>");
-
-      this->parent_->config_.pull();
-      this->parent_->config_.render_html(sender);
-
-      sender->send(
-          "<button type=button onclick=add_meter() >Add Meter</button>");
-      sender->send("</div>");
+      this->blinker_script->execute();
     }
 
-    bool Frontend::handleResponse(const char *key, const char *value)
-    {
-      ESP_LOGD("WM", "POST: Got %s->%s", key, value);
-
-      if (strncmp(key, "meter_", sizeof("meter_") - 1) == 0)
-      {
-        this->parent_->config_.enqueue_entry(value);
-        return true;
-      }
-      return false;
-    }
-
-    void Frontend::onProcessingEnd()
-    {
-      this->parent_->config_.push();
-    }
   };
 
 }

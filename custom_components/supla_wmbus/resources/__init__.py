@@ -2,15 +2,13 @@ from esphome.helpers import write_file_if_changed
 from requests import post
 from pathlib import Path
 
-
+# May be also done with terser with module:true and replacing const to let
 def generate_resources():
     variables = {
-        "frontend_script": "<script>"
-        + post(
+        "frontend_script": post(
             "https://www.toptal.com/developers/javascript-minifier/api/raw",
             data={"input": Path(__file__).parent.joinpath("frontend.js").read_text()},
-        ).text
-        + "</script>",
+        ).text,
     }
 
     h_content = "#pragma once\n" + "".join(
@@ -18,7 +16,7 @@ def generate_resources():
     )
 
     c_content = "".join(
-        f'const char* {var} = "{content.replace('"', "'")}";\n'
+        f'const char* {var} = "{content.replace('"', '\\"')}";\n'
         for var, content in variables.items()
     )
 

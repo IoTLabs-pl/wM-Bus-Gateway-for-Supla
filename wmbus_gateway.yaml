@@ -1,9 +1,10 @@
 packages:
-  core: !include
-    file: /home/kuba/wmbus/wM-Bus-Gateway/packages/wmbus_gateway_core.yaml
+  wmbus-gateway: github://IoTLabs-pl/wM-Bus-Gateway/packages/wmbus_gateway.yaml@v1.0.3
 
 esphome:
   name: supla-wmbus
+  project:
+    version: v1.0.0-supla
 
 esp32:
   framework:
@@ -21,15 +22,15 @@ mdns:
 
 wmbus_radio:
   on_frame:
-    - then:
-        - logger.log:
-            level: WARN
-            format: "Meter ID: %s"
-            args: ["frame->meter_id().c_str()"]
-        - logger.log:
-            level: WARN
-            format: "Frame: https://wmbusmeters.org/analyze/%s"
-            args: ["frame->as_hex().c_str()"]
+    then:
+      - logger.log:
+          level: WARN
+          format: "Meter ID: %s"
+          args: ["frame->meter_id().c_str()"]
+      - logger.log:
+          level: WARN
+          format: "Frame: https://wmbusmeters.org/analyze/%s"
+          args: ["frame->as_hex().c_str()"]
 
 wmbus_common:
   drivers: all
@@ -38,12 +39,20 @@ wmbus_meter:
 
 supla_wmbus:
 
+script:
+  - id: blinker_script
+    then:
+      - repeat:
+          count: 20
+          then:
+            - light.control:
+                id: wmbus_gateway_status_led
+                state: !lambda return iteration % 2 == 0;
+            - delay: 50ms
+
 image:
-  - id: !remove qr_code
-  - id: qr_code
+  - id: !extend qr_code
     file: resources/qrcode.png
-    type: binary
-    invert_alpha: True
 
 binary_sensor:
   - id: !extend ext_button
