@@ -17,7 +17,7 @@ jobs:
         with:
           yaml-file: wmbus_gateway.yaml
           complete-manifest: true
-          version: 2026.6.3
+          version: 2025.6.3
       - name: Upload binaries to release
         uses: softprops/action-gh-release@v2
         with:
