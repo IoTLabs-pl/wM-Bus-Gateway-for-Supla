@@ -7,7 +7,7 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_device
     {
 
         struct HTMLElement
@@ -77,5 +77,5 @@ namespace esphome
 
         DivElement create_form_field(const HTMLElement child, const char *label = "", bool indexable = false);
 
-    } // namespace supla_wmbus_reader
+    } // namespace supla_device
 } // namespace esphome

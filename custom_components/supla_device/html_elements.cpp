@@ -2,7 +2,7 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_device
     {
 
         // HTMLElement::Attribute
@@ -117,5 +117,5 @@ namespace esphome
             return div;
         }
 
-    } // namespace supla_wmbus_reader
+    } // namespace supla_device
 } // namespace esphome

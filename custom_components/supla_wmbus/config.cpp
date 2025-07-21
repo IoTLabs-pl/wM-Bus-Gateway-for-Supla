@@ -41,7 +41,7 @@ namespace esphome
             }
         }
 
-        HTMLElement ConfigEntry::as_html() const
+        ConfigEntry::HTMLElement ConfigEntry::as_html() const
         {
 
             std::list<SelectElement::Option> driver_options;

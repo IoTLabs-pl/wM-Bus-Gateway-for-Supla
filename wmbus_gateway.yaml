@@ -3,6 +3,7 @@ packages:
 
 esphome:
   name: supla-wmbus
+  min_version: 2025.7.0
   project:
     version: v1.0.0-supla
 
@@ -35,7 +36,8 @@ wmbus_radio:
 wmbus_common:
   drivers: all
 
-wmbus_meter:
+supla_device:
+  version: v25.6
 
 supla_wmbus:
 

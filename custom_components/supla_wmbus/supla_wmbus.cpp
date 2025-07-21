@@ -6,56 +6,21 @@
 #include "esphome/core/application.h"
 #include "esphome/components/wmbus_common/meters.h"
 
-#include "supla/network/html/device_info.h"
-#include "supla/network/html/protocol_parameters.h"
-#include "supla/network/html/wifi_parameters.h"
-#include "supla/device/supla_ca_cert.h"
-
-#include "esp_idf_web_server.h"
-#include "esp_idf_wifi.h"
-#include "nvs_config.h"
-
 namespace esphome
 {
   namespace supla_wmbus_reader
   {
+    const Component::LEDModeOption Component::led_mode_{
+        "led_mode",
+        "LED Mode",
+        {
+            {LEDMode::LED_OFF, "OFF"},
+            {LEDMode::LED_ALWAYS, "ON"},
+            {LEDMode::LED_MATCH, "ON METER MATCH"},
+        }};
 
     void Component::setup()
     {
-      esp_log_level_set("SUPLA", ESP_LOG_DEBUG);
-
-      new Supla::Html::DeviceInfo(&SuplaDevice);
-      new Supla::Html::WifiParameters;
-      new Supla::Html::ProtocolParameters;
-
-      new Supla::Clock;
-
-      // Nvs based device configuration storage
-      new Supla::NvsConfig;
-
-      // Cfg mode web server
-      new Supla::EspIdfWebServer;
-      new Supla::EspIdfWifi;
-
-      SuplaDevice.setSuplaCACert(suplaCACert);
-      SuplaDevice.setSupla3rdPartyCACert(supla3rdCACert);
-
-      std::string name = ESPHOME_PROJECT_NAME;
-      // Find dot between IoTLabs and device name
-      size_t sep_position = name.find('.');
-      name[sep_position] = ' ';
-
-      std::string version = ESPHOME_PROJECT_VERSION;
-      // Remove leading 'v' and trailing '-supla' if present
-      version = version.substr(1, version.find('-', 1) - 1);
-
-      SuplaDevice.setName(name.c_str());
-      SuplaDevice.setSwVersion(version.c_str());
-      SuplaDevice.setCustomHostnamePrefix(name.c_str() + sep_position + 1);
-      SuplaDevice.setMacLengthInHostname(3);
-      SuplaDevice.begin();
-      App.feed_wdt();
-
       auto config_entries = this->config_.pull();
       for (auto &entry : config_entries)
       {
@@ -71,80 +36,17 @@ namespace esphome
         this->meters.push_back(std::move(meter));
       }
 
-      SuplaDevice.iterate();
-      App.feed_wdt();
-
-      auto aux_config = this->aux_config_.pull();
-
-      switch (aux_config.get_led_mode())
+      switch (this->led_mode_.load_from_storage())
       {
-      case AuxConfig::LEDMode::LED_ALWAYS:
+      case LEDMode::LED_ALWAYS:
         this->radio->add_frame_handler(std::bind(&Component::blink, this));
         break;
-      case AuxConfig::LEDMode::LED_MATCH:
+      case LEDMode::LED_MATCH:
         for (const auto &meter : this->meters)
           meter->on_telegram(std::bind(&Component::blink, this));
         break;
       }
-
-      if (aux_config.get_config_mode() == AuxConfig::ConfigMode::CONFIG_MODE_ALWAYS_ON)
-        Supla::WebServer::Instance()->start();
     }
-
-    void Component::loop()
-    {
-      SuplaDevice.iterate();
-
-      auto status = SuplaDevice.getCurrentStatus();
-      std::string status_str = "SuplaDevice status: " + std::to_string(status);
-      switch (status)
-      {
-      case STATUS_OFFLINE_MODE:
-      case STATUS_REGISTERED_AND_READY:
-      case STATUS_SUPLA_PROTOCOL_DISABLED:
-        this->status_clear_error();
-        this->status_clear_warning();
-        break;
-
-      case STATUS_INITIALIZED:
-      case STATUS_NETWORK_DISCONNECTED:
-      case STATUS_REGISTER_IN_PROGRESS:
-      case STATUS_SOFTWARE_RESET:
-      case STATUS_SW_DOWNLOAD:
-      case STATUS_CONFIG_MODE:
-        this->status_clear_error();
-        this->status_set_warning(status_str.c_str());
-        break;
-
-      case STATUS_UNKNOWN:
-      case STATUS_ALREADY_INITIALIZED:
-      case STATUS_MISSING_NETWORK_INTERFACE:
-      case STATUS_UNKNOWN_SERVER_ADDRESS:
-      case STATUS_UNKNOWN_LOCATION_ID:
-      case STATUS_ALL_PROTOCOLS_DISABLED:
-      case STATUS_SERVER_DISCONNECTED:
-      case STATUS_ITERATE_FAIL:
-      case STATUS_TEMPORARILY_UNAVAILABLE:
-      case STATUS_INVALID_GUID:
-      case STATUS_CHANNEL_LIMIT_EXCEEDED:
-      case STATUS_PROTOCOL_VERSION_ERROR:
-      case STATUS_BAD_CREDENTIALS:
-      case STATUS_LOCATION_CONFLICT:
-      case STATUS_CHANNEL_CONFLICT:
-      case STATUS_DEVICE_IS_DISABLED:
-      case STATUS_LOCATION_IS_DISABLED:
-      case STATUS_DEVICE_LIMIT_EXCEEDED:
-      case STATUS_REGISTRATION_DISABLED:
-      case STATUS_MISSING_CREDENTIALS:
-      case STATUS_INVALID_AUTHKEY:
-      case STATUS_NO_LOCATION_AVAILABLE:
-      case STATUS_UNKNOWN_ERROR:
-      default:
-        this->status_clear_warning();
-        this->status_set_error(status_str.c_str());
-        break;
-      }
-    };
 
     void Component::blink() const
     {

@@ -4,28 +4,33 @@
 #include <string>
 #include <vector>
 
+#include "esphome/components/supla_device/html_elements.h"
+
 #include "supla/network/html_element.h"
 
 #include "sensor_wrapper.h"
-#include "html_elements.h"
 
 namespace esphome
 {
     namespace supla_wmbus_reader
     {
+
         class Meter;
 
         class ConfigEntry : public std::vector<std::string>
         {
+            using HTMLElement = supla_device::HTMLElement;
+            using SelectElement = supla_device::SelectElement;
+            using InputElement = supla_device::InputElement;
+            using DivElement = supla_device::DivElement;
+            static std::vector<std::string> split_string(std::string serialized, size_t minimum_size = 0);
+            const std::vector<const BindMetadata *> bind_metadata;
+
         public:
             ConfigEntry(const std::string &data = "");
             HTMLElement as_html() const;
             std::string serialized() const;
             Meter *create_meter() const;
-
-        protected:
-            static std::vector<std::string> split_string(std::string serialized, size_t minimum_size = 0);
-            const std::vector<const BindMetadata *> bind_metadata;
         };
 
         class Config
@@ -39,6 +44,8 @@ namespace esphome
                 void onProcessingEnd() override;
 
             protected:
+                using DivElement = supla_device::DivElement;
+
                 size_t post_data_counter_ = 0;
             };
 
