@@ -17,6 +17,13 @@ jobs:
         with:
           yaml-file: wmbus_gateway.yaml
           complete-manifest: true
+      - name: Alter `new_install_prompt_erase` manifest field
+        env: 
+          BAK_FILE: "${{ steps.build_firmware.outputs.name }}/manifest.json.bak"
+          FILE: "${{ steps.build_firmware.outputs.name }}/manifest.json"
+        run: |
+          mv "$FILE" "$BAK_FILE"
+          jq '.new_install_prompt_erase = true' "$BAK_FILE" > "$FILE"
       - name: Upload binaries to release
         uses: softprops/action-gh-release@v2
         with:
