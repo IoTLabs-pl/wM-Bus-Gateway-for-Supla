@@ -20,9 +20,17 @@ namespace esphome
             "config_mode",
             "Config Mode",
             {
-                {CONFIG_MODE_DEFAULT, "DEFAULT"},
-                {CONFIG_MODE_ALWAYS_ON, "ALWAYS ON"},
+                {ConfigMode::CONFIG_MODE_DEFAULT, "DEFAULT"},
+                {ConfigMode::CONFIG_MODE_ALWAYS_ON, "ALWAYS ON"},
             }};
+
+        float SuplaDeviceComponent::get_setup_priority() const
+        {
+            // This component have to be initialized before any other
+            // component that uses SuplaDeviceClass, as NVS storage
+            // is used to store device configuration.
+            return setup_priority::DATA + 1;
+        }
 
         void SuplaDeviceComponent::setup()
         {
@@ -58,7 +66,10 @@ namespace esphome
             SuplaDevice.begin();
 
             if (this->config_mode_.load_from_storage() == CONFIG_MODE_ALWAYS_ON)
-                this->set_timeout(100, []()
+            // We need to start web server after first loop of SuplaDevice.iterate()
+            // but we cannot call iterate() in setup() as it registers channels
+            // which are not setup yet...
+                this->set_timeout(5000, []()
                                   { Supla::WebServer::Instance()->start(); });
         }
 

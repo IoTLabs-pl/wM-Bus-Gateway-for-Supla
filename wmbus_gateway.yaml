@@ -9,11 +9,11 @@ esphome:
 
 esp32:
   framework:
+    advanced:
+      enable_lwip_dhcp_server: true
     sdkconfig_options:
       CONFIG_HTTPD_MAX_REQ_HDR_LEN: "1024"
       CONFIG_SUPLA_DEBUG_BUILD: "y"
-      CONFIG_LOG_MAXIMUM_LEVEL: CONFIG_LOG_MAXIMUM_LEVEL_DEBUG
-      CONFIG_LOG_DEFAULT_LEVEL: CONFIG_LOG_DEFAULT_LEVEL_DEBUG
       CONFIG_ESP_TLS_USING_MBEDTLS: "y"
       CONFIG_ESP_TLS_INSECURE: "y"
       CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY: "y"

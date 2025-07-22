@@ -1,22 +1,22 @@
 import logging
 from pathlib import Path
 from re import Match, compile
+from string import punctuation
 
 from esphome import codegen as cg
 from esphome import config_validation as cv
-from esphome.core import CORE
 from esphome.components.esp32 import add_idf_component
-
-from esphome.const import CONF_VERSION, CONF_PROJECT, CONF_NAME
-from esphome.core import TimePeriod
+from esphome.const import CONF_ESPHOME, CONF_ID, CONF_NAME, CONF_PROJECT, CONF_VERSION
+from esphome.core import CORE, TimePeriod
 from esphome.git import clone_or_update
-
-from string import punctuation
 
 CODEOWNERS = ["@kubasaw"]
 
 _LOGGER = logging.getLogger(__name__)
 
+SuplaDeviceComponent = cg.esphome_ns.namespace("supla_device").class_(
+    "SuplaDeviceComponent", cg.Component
+)
 
 COMPONENT_NAME = "supla-device"
 RELATIVE_PATH_RE = compile(r"(?:\.\./)+[\w\-/.]+")
@@ -24,15 +24,22 @@ REPO_URL = "https://github.com/SUPLA/supla-device.git"
 COMPONENTS_PATH = Path("extras/esp-idf")
 
 CONFIG_SCHEMA = cv.All(
-    cv.Schema({cv.GenerateID(CONF_VERSION): cv.string_strict}),
+    cv.Schema(
+        {
+            cv.GenerateID(CONF_ID): cv.declare_id(SuplaDeviceComponent),
+            cv.GenerateID(CONF_VERSION): cv.string_strict,
+        }
+    ),
     cv.only_with_esp_idf,
 )
 
 
-def to_code(config):
+async def to_code(config):
     # This is a workaround for the fact that the supla-device component
     # is not a real idf component as it requires files outside of the
     # component directory...
+    # The standard way to add an idf component is to use
+    # `esp32.components` config option in yaml
 
     _REGISTERED_FILES: dict[str, Path] = {}
 
@@ -82,15 +89,20 @@ def to_code(config):
         path=str(Path(git_path) / COMPONENTS_PATH / COMPONENT_NAME),
     )
 
-    if project_conf := CORE.config.get(CONF_PROJECT):
+    ## Workaround end
+
+    if project_conf := CORE.config[CONF_ESPHOME].get(CONF_PROJECT):
         author, project = project_conf[CONF_NAME].split(".", 1)
         version = (
             project_conf[CONF_VERSION]
-            .removeprefix("v")
             .replace("supla", "")
             .strip(punctuation)
+            .removeprefix("v")
         )
 
         cg.add_define("SUPLA_DEVICE_NAME", f"{author} {project}")
         cg.add_define("SUPLA_DEVICE_SW_VERSION", version)
         cg.add_define("SUPLA_DEVICE_HOSTNAME_PREFIX", project)
+
+    supla_device = cg.new_Pvariable(config[CONF_ID])
+    await cg.register_component(supla_device, config)

@@ -23,6 +23,7 @@ namespace esphome
 
         protected:
             void blink() const;
+            script::Script<> *blinker_script;
 
             enum LEDMode : uint8_t
             {
@@ -30,14 +31,13 @@ namespace esphome
                 LED_ALWAYS = 1,
                 LED_MATCH = 2,
             };
-
             using LEDModeOption = supla_device::EnumOption<LEDMode>;
+            static const LEDModeOption led_mode_;
 
             std::list<Meter *> meters;
             wmbus_radio::Radio *radio;
-            script::Script<> *blinker_script;
+
             Config config_;
-            static const LEDModeOption led_mode_;
             wmbus_gateway::DisplayManager *display_manager;
         };
 

@@ -10,12 +10,12 @@ namespace esphome
 {
     namespace supla_device
     {
-
         class SuplaDeviceComponent : public Component
         {
         public:
             void setup() override;
             void loop() override;
+            float get_setup_priority() const override;
 
         protected:
             enum ConfigMode : uint8_t
@@ -26,6 +26,5 @@ namespace esphome
             using ConfigModeOption = EnumOption<ConfigMode>;
             static const ConfigModeOption config_mode_;
         };
-
     }
 }
