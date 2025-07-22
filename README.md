@@ -26,20 +26,18 @@ This repository contains the source code for the [**wM-Bus Gateway**](http://git
 ### 📶 Wi-Fi Configuration
 
 1. **Power up** the device with a USB cable. You may use your computer or a USB power adapter.
-2. **Configure your Wi-Fi network credentials** using the device's Wi-Fi access point:
+2. Connect to the device's Wi-Fi network named `WM-BUS-GATEWAY-xxxxxx`.
 
-   1. Connect to the device's Wi-Fi network named `WM-BUS-GATEWAY-xxxxxx`.
+   > 💡 **Tip 1:**  
+   >  Device's web interface IP and network SSID are presented on the display connection page.
 
-      > 💡 **Tip 1:**  
-      >  Device's web interface IP and network SSID are presented on the display connection page.
+   > 💡 **Tip 2:**  
+   >  If you are using a mobile device, you may need to disable the mobile data connection to access the device's web interface.
 
-      > 💡 **Tip 2:**  
-      >  If you are using a mobile device, you may need to disable the mobile data connection to access the device's web interface.
-
-   2. Open a web browser and go to `http://191.168.4.1`
-   3. Specify your **Wi-Fi network credentials** (SSID and password) in the form.
-   4. **(Optional)** If you do not have your wM-Bus meters configured yet, you may also set **Config Mode** option to `ALWAYS ON` to be able to reach the device's web interface after it connects to your Wi-Fi network. Its local IP address will be shown on the display connection page.
-   5. Click **Save & Restart**. Device will reboot and connect to your Wi-Fi network.
+3. Open a web browser and go to `http://191.168.4.1`
+4. Specify your **Wi-Fi network credentials** (SSID and password) in the form.
+5. **(Optional)** If you do not have your wM-Bus meters configured yet, you may also set **Config Mode** option to `ALWAYS ON` to be able to reach the device's web interface after it connects to your Wi-Fi network. Its local IP address will be shown on the display connection page.
+6. Click **Save & Restart**. Device will reboot and connect to your Wi-Fi network.
 
 ### ⏱️ Meters Configuration
 
