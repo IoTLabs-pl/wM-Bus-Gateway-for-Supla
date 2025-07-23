@@ -16,3 +16,4 @@ jobs:
         env:
           LOG_LEVEL: debug
           RENOVATE_REPOSITORIES: ${{ github.repository }}
+          RENOVATE_ONBOARDING: false
