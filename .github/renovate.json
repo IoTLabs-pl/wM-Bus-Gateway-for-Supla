@@ -1,0 +1,22 @@
+{
+  "extends": ["config:recommended"],
+  "customManagers": [
+    {
+      "managerFilePatterns": ["wmbus_gateway.yaml"],
+      "fileFormat": "yaml",
+      "customType": "jsonata",
+      "matchStrings": [
+        "($re := \/^github:\\\/\\\/([^\/]+\\\/[^\/]+)\\\/.*@([^@\/]+)$\/;packages.{       \"packageName\": $replace(wmbus_gateway, $re, \"$1\"),\"currentValue\": $replace(wmbus_gateway, $re, \"$2\")})"
+      ],
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "managerFilePatterns": ["wmbus_gateway.yaml"],
+      "fileFormat": "yaml",
+      "customType": "jsonata",
+      "matchStrings": ["supla_device.{ \"currentValue\": version }"],
+      "packageNameTemplate": "SUPLA/supla-device",
+      "datasourceTemplate": "github-releases"
+    }
+  ]
+}
