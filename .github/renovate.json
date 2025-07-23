@@ -6,7 +6,7 @@
       "fileFormat": "yaml",
       "customType": "jsonata",
       "matchStrings": [
-        "($re := \/^github:\\\/\\\/([^\/]+\\\/[^\/]+)\\\/.*@([^@\/]+)$\/;packages.{       \"packageName\": $replace(wmbus_gateway, $re, \"$1\"),\"currentValue\": $replace(wmbus_gateway, $re, \"$2\")})"
+        "($re := \/^github:\\\/\\\/([^\/]+\\\/[^\/]+)\\\/.*@([^@\/]+)$\/;packages.{\"packageName\": $replace(wmbus_gateway, $re, \"$1\"),\"currentValue\": $replace(wmbus_gateway, $re, \"$2\")})"
       ],
       "datasourceTemplate": "github-releases"
     },
