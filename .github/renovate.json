@@ -1,6 +1,6 @@
 {
   "extends": ["config:recommended"],
-  "draftPr": true,
+  "draftPR": true,
   "customManagers": [
     {
       "managerFilePatterns": ["wmbus_gateway.yaml"],
