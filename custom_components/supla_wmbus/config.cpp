@@ -98,6 +98,8 @@ namespace esphome
             {
             case MeterType::WaterMeter:
             case MeterType::GasMeter:
+            case MeterType::HeatMeter:
+            case MeterType::HeatCoolingMeter:
                 ESP_LOGD(TAG, "Creating FlowMeter");
                 return new Meter(this, std::unique_ptr<FlowMeter>{new FlowMeter{}});
             case MeterType::ElectricityMeter:
