@@ -1,17 +1,18 @@
 #include "sensor.h"
-#include "meter.h"
 
 namespace esphome
 {
     namespace supla_wmbus_reader
     {
+        static const char *TAG = "supla.wmbus.sensor";
+
         Sensor::Sensor(const std::string &sensor_name,
                        const std::string &field_name,
                        const std::string &unit_of_measurement,
                        std::function<void(float)> &&callback) : name_(sensor_name),
                                                                 unit_of_measurement_(unit_of_measurement)
         {
-            ESP_LOGD("supla.wmbus.sensor", "Constructing sensor: %s (%s) with unit %s",
+            ESP_LOGD(TAG, "Constructing sensor: %s (%s) with unit %s",
                      sensor_name.c_str(),
                      field_name.c_str(),
                      unit_of_measurement.c_str());

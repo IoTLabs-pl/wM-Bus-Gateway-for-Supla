@@ -6,10 +6,10 @@
 
 #include "esphome/core/log.h"
 #include "esphome/components/wmbus_common/component.h"
-#include "esphome/components/wmbus_common/meters.h"
 
 #include "resources.h"
-#include "meter.h"
+#include "meter_impulse.h"
+#include "meter_electricity.h"
 
 #define GENERATE_KEY(varname, index)         \
     char varname[SUPLA_CONFIG_MAX_KEY_SIZE]; \
@@ -22,16 +22,19 @@ namespace esphome
         static const char *TAG = "supla.wmbus.config";
 
         ConfigEntry::ConfigEntry(const std::string &data)
-            : std::vector<std::string>{split_string(data, 3)},
-              bind_metadata{[this]()
-                            {
-                                auto m = std::unique_ptr<Meter>{this->create_meter()};
-                                return m ? m->bind_metadata() : std::vector<const BindMetadata *>{};
-                            }()}
+            : std::vector<std::string>{split_string(data, 3)}
         {
+            if (!this->meter_)
+                this->meter_ = std::unique_ptr<MeterBase>{ImpulseCounter::create(this)};
+            if (!this->meter_)
+                this->meter_ = std::unique_ptr<MeterBase>{ElectricityMeter::create(this)};
+
             ESP_LOGD(TAG, "ConfigEntry created with %zu fields", this->size());
             size_t actual_size = this->size();
-            size_t required_size = 3 + this->bind_metadata.size();
+            size_t required_size = 3;
+
+            if (this->meter_)
+                required_size += this->meter_->callback_metadata_.size();
 
             if (actual_size != required_size)
             {
@@ -56,13 +59,16 @@ namespace esphome
                 create_form_field(InputElement{(*this)[2].c_str()}, "Key"),
                 create_form_field(HTMLElement{"button", "Remove", {}, {{"type", "button"}}})};
 
-            auto &bindings = this->bind_metadata;
-            for (uint8_t i = 0; i < bindings.size(); ++i)
-                fields.insert(
-                    std::prev(fields.end()),
-                    create_form_field(InputElement{(*this)[i + 3].c_str()},
-                                      bindings[i]->name,
-                                      bindings[i]->indexable));
+            if (this->meter_)
+            {
+                auto &callbacks = this->meter_->callback_metadata_;
+                for (uint8_t i = 0; i < callbacks.size(); ++i)
+                    fields.insert(
+                        std::prev(fields.end()),
+                        create_form_field(InputElement{(*this)[i + 3].c_str()},
+                                          callbacks[i].name,
+                                          callbacks[i].indexable));
+            }
 
             return DivElement{
                 std::move(fields),
@@ -89,25 +95,32 @@ namespace esphome
             return {result.cbegin(), result.cend()};
         }
 
-        Meter *ConfigEntry::create_meter() const
+        MeterType ConfigEntry::meter_type() const
         {
             auto di = lookupDriver((*this)[1]);
             auto type = (!(*this)[0].empty() && di) ? di->type() : MeterType::UnknownMeter;
+            return type;
+        }
 
-            switch (type)
+        MeterBase *ConfigEntry::build_meter(wmbus_radio::Radio *radio, wmbus_gateway::DisplayManager *display_manager)
+        {
+            if (this->meter_)
             {
-            case MeterType::WaterMeter:
-            case MeterType::GasMeter:
-            case MeterType::HeatMeter:
-            case MeterType::HeatCoolingMeter:
-                ESP_LOGD(TAG, "Creating FlowMeter");
-                return new Meter(this, std::unique_ptr<FlowMeter>{new FlowMeter{}});
-            case MeterType::ElectricityMeter:
-                ESP_LOGD(TAG, "Creating ElectricityMeter");
-                return new Meter(this, std::unique_ptr<ElectricityMeter>{new ElectricityMeter{}});
-            default:
-                return nullptr;
+                this->meter_->set_meter_params(
+                    (*this)[0], (*this)[1], (*this)[2]);
+
+                auto &sensors = this->meter_->create_sensors(this);
+
+                if (radio)
+                    this->meter_->set_radio(radio);
+
+                if (display_manager)
+                    for (auto &sensor : sensors)
+                        display_manager->add_sensor(&sensor);
+
+                ESP_LOGD(TAG, "Built meter with ID: %s, Driver: %s", (*this)[0].c_str(), (*this)[1].c_str());
             }
+            return this->meter_.release();
         }
 
         std::string ConfigEntry::serialized() const

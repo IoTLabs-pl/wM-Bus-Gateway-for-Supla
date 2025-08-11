@@ -7,7 +7,7 @@
 #include "esphome/components/script/script.h"
 
 #include "config.h"
-#include "meter.h"
+#include "meter_base.h"
 
 namespace esphome
 {
@@ -34,7 +34,7 @@ namespace esphome
             using LEDModeOption = supla_device::EnumOption<LEDMode>;
             static const LEDModeOption led_mode_;
 
-            std::list<Meter *> meters;
+            std::list<MeterBase *> meters;
             wmbus_radio::Radio *radio;
 
             Config config_;

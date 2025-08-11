@@ -24,16 +24,9 @@ namespace esphome
       auto config_entries = this->config_.pull();
       for (auto &entry : config_entries)
       {
-        auto meter = entry.create_meter();
-        if (!meter)
-          continue;
-
-        meter->set_radio(this->radio);
-
-        for (auto &sensor : meter->create_sensors())
-          this->display_manager->add_sensor(&sensor);
-
-        this->meters.push_back(std::move(meter));
+        auto meter = entry.build_meter(this->radio, this->display_manager);
+        if (meter)
+          this->meters.push_back(meter);
       }
 
       switch (this->led_mode_.load_from_storage())
