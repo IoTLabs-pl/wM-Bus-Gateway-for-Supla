@@ -1,0 +1,61 @@
+#include "meter_impulse.h"
+
+namespace esphome
+{
+    namespace supla_wmbus_reader
+    {
+        static const char *TAG = "supla.wmbus.meter_impulse";
+
+        const std::vector<CallbackMetadata> ImpulseCounter::callback_metadata_ = {
+            NON_INDEXABLE_CB(ImpulseCounter, "Impulse Counter", setCounter, 1e3f),
+        };
+
+        ImpulseCounter::ImpulseCounter(uint16_t fcn) : MeterBase(this->callback_metadata_)
+        {
+            this->channel.setDefaultFunction(fcn);
+            this->channel.setFlag(SUPLA_CHANNEL_FLAG_RUNTIME_CHANNEL_CONFIG_UPDATE);
+            this->usedConfigTypes.set(SUPLA_CONFIG_TYPE_DEFAULT);
+        }
+
+        ImpulseCounter *ImpulseCounter::create(ConfigEntry *ce)
+        {
+            uint16_t fcn = 0;
+            switch (ce->meter_type())
+            {
+            case MeterType::GasMeter:
+                fcn = SUPLA_CHANNELFNC_IC_GAS_METER;
+                break;
+            case MeterType::WaterMeter:
+                fcn = SUPLA_CHANNELFNC_IC_WATER_METER;
+                break;
+            case MeterType::HeatMeter:
+            case MeterType::HeatCoolingMeter:
+                fcn = SUPLA_CHANNELFNC_IC_HEAT_METER;
+                break;
+            default:
+                return nullptr;
+            }
+
+            return new ImpulseCounter{fcn};
+        }
+
+        Supla::ApplyConfigResult ImpulseCounter::applyChannelConfig(
+            TSD_ChannelConfig *result, bool)
+        {
+            if (result->ConfigSize == 0)
+                return Supla::ApplyConfigResult::SetChannelConfigNeeded;
+
+            return Supla::ApplyConfigResult::NotSupported;
+        }
+
+        void ImpulseCounter::fillChannelConfig(void *channelConfig, int *size, uint8_t)
+        {
+            ESP_LOGE(TAG, "Filling channel config for ImpulseCounter");
+
+            auto c = TChannelConfig_ImpulseCounter{.ImpulsesPerUnit = 1000};
+
+            *size = sizeof(c);
+            *(TChannelConfig_ImpulseCounter *)channelConfig = c;
+        }
+    }
+}
