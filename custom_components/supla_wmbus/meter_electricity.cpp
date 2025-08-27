@@ -1,10 +1,12 @@
 #include "meter_electricity.h"
 
+#include "config.h"
+
 namespace esphome
 {
     namespace supla_wmbus_reader
     {
-        const std::vector<CallbackMetadata> ElectricityMeter::callback_metadata_ = {
+        const std::vector<CallbackMetadata> ElectricityMeter::callback_metadata = {
             NON_INDEXABLE_CB(ElectricityMeter, "Forward Balanced Energy", setFwdBalancedEnergy, 1e5f),
             NON_INDEXABLE_CB(ElectricityMeter, "Reverse Balanced Energy", setRvrBalancedEnergy, 1e5f),
             INDEXABLE_CB(ElectricityMeter, "Forward Active Energy", setFwdActEnergy, 1e5f),
@@ -21,20 +23,10 @@ namespace esphome
             INDEXABLE_CB(ElectricityMeter, "Phase Angle", setPhaseAngle, 1e1f),
         };
 
-        ElectricityMeter::ElectricityMeter(bool multiphase) : MeterBase(this->callback_metadata_)
+        ElectricityMeter::ElectricityMeter(const ConfigEntry *ce)
+            : MeterBase(this->callback_metadata)
         {
-            if (!multiphase)
-                this->extChannel.setFlag(SUPLA_CHANNEL_FLAG_PHASE2_UNSUPPORTED |
-                                         SUPLA_CHANNEL_FLAG_PHASE3_UNSUPPORTED);
-        }
-
-        ElectricityMeter *ElectricityMeter::create(ConfigEntry *ce)
-        {
-            if (ce->meter_type() != MeterType::ElectricityMeter)
-                return nullptr;
-
-            auto multiphase = false;
-
+            bool multiphase = false;
             for (const auto &entry : *ce)
                 if (entry.find("%d") != std::string::npos)
                 {
@@ -42,7 +34,14 @@ namespace esphome
                     break;
                 }
 
-            return new ElectricityMeter{multiphase};
+            if (!multiphase)
+                this->extChannel.setFlag(SUPLA_CHANNEL_FLAG_PHASE2_UNSUPPORTED |
+                                         SUPLA_CHANNEL_FLAG_PHASE3_UNSUPPORTED);
+        }
+
+        bool ElectricityMeter::can_build_from(const ConfigEntry *ce)
+        {
+            return ce && ce->meter_type() == MeterType::ElectricityMeter;
         }
     }
 }

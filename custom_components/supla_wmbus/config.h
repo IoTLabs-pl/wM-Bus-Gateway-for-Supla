@@ -11,12 +11,12 @@
 
 #include "supla/network/html_element.h"
 
+#include "meter_base.h"
+
 namespace esphome
 {
     namespace supla_wmbus_reader
     {
-        class MeterBase;
-
         class ConfigEntry : public std::vector<std::string>
         {
             using HTMLElement = supla_device::HTMLElement;
@@ -25,7 +25,7 @@ namespace esphome
             using DivElement = supla_device::DivElement;
             static std::vector<std::string> split_string(std::string serialized, size_t minimum_size = 0);
 
-            std::unique_ptr<MeterBase> meter_;
+            const std::vector<CallbackMetadata> &get_callback_metadata() const;
 
         public:
             ConfigEntry(const std::string &data = "");

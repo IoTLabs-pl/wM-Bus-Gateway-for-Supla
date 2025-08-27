@@ -1,23 +1,28 @@
 #include "meter_impulse.h"
 
+#include "config.h"
+
 namespace esphome
 {
     namespace supla_wmbus_reader
     {
         static const char *TAG = "supla.wmbus.meter_impulse";
 
-        const std::vector<CallbackMetadata> ImpulseCounter::callback_metadata_ = {
+        const std::vector<CallbackMetadata> ImpulseCounter::callback_metadata = {
             NON_INDEXABLE_CB(ImpulseCounter, "Impulse Counter", setCounter, 1e3f),
         };
 
-        ImpulseCounter::ImpulseCounter(uint16_t fcn) : MeterBase(this->callback_metadata_)
+        ImpulseCounter::ImpulseCounter(const ConfigEntry *ce)
+            : MeterBase(this->callback_metadata)
         {
-            this->channel.setDefaultFunction(fcn);
+            auto supla_fcn = get_supla_fcn(ce);
+
+            this->channel.setDefaultFunction(supla_fcn);
             this->channel.setFlag(SUPLA_CHANNEL_FLAG_RUNTIME_CHANNEL_CONFIG_UPDATE);
             this->usedConfigTypes.set(SUPLA_CONFIG_TYPE_DEFAULT);
         }
 
-        ImpulseCounter *ImpulseCounter::create(ConfigEntry *ce)
+        int ImpulseCounter::get_supla_fcn(const ConfigEntry *ce)
         {
             uint16_t fcn = 0;
             switch (ce->meter_type())
@@ -32,11 +37,9 @@ namespace esphome
             case MeterType::HeatCoolingMeter:
                 fcn = SUPLA_CHANNELFNC_IC_HEAT_METER;
                 break;
-            default:
-                return nullptr;
             }
 
-            return new ImpulseCounter{fcn};
+            return fcn;
         }
 
         Supla::ApplyConfigResult ImpulseCounter::applyChannelConfig(
@@ -56,6 +59,11 @@ namespace esphome
 
             *size = sizeof(c);
             *(TChannelConfig_ImpulseCounter *)channelConfig = c;
+        }
+
+        bool ImpulseCounter::can_build_from(const ConfigEntry *ce)
+        {
+            return ce && get_supla_fcn(ce) != 0;
         }
     }
 }

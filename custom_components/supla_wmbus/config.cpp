@@ -24,17 +24,12 @@ namespace esphome
         ConfigEntry::ConfigEntry(const std::string &data)
             : std::vector<std::string>{split_string(data, 3)}
         {
-            if (!this->meter_)
-                this->meter_ = std::unique_ptr<MeterBase>{ImpulseCounter::create(this)};
-            if (!this->meter_)
-                this->meter_ = std::unique_ptr<MeterBase>{ElectricityMeter::create(this)};
 
             ESP_LOGD(TAG, "ConfigEntry created with %zu fields", this->size());
             size_t actual_size = this->size();
             size_t required_size = 3;
 
-            if (this->meter_)
-                required_size += this->meter_->callback_metadata_.size();
+            required_size += this->get_callback_metadata().size();
 
             if (actual_size != required_size)
             {
@@ -42,6 +37,18 @@ namespace esphome
                 this->resize(3);
                 this->resize(required_size);
             }
+        }
+
+        const std::vector<CallbackMetadata> &ConfigEntry::get_callback_metadata() const
+        {
+            static const std::vector<CallbackMetadata> empty;
+
+            if (ImpulseCounter::can_build_from(this))
+                return ImpulseCounter::callback_metadata;
+            if (ElectricityMeter::can_build_from(this))
+                return ElectricityMeter::callback_metadata;
+
+            return empty;
         }
 
         ConfigEntry::HTMLElement ConfigEntry::as_html() const
@@ -59,16 +66,14 @@ namespace esphome
                 create_form_field(InputElement{(*this)[2].c_str()}, "Key"),
                 create_form_field(HTMLElement{"button", "Remove", {}, {{"type", "button"}}})};
 
-            if (this->meter_)
-            {
-                auto &callbacks = this->meter_->callback_metadata_;
-                for (uint8_t i = 0; i < callbacks.size(); ++i)
-                    fields.insert(
-                        std::prev(fields.end()),
-                        create_form_field(InputElement{(*this)[i + 3].c_str()},
-                                          callbacks[i].name,
-                                          callbacks[i].indexable));
-            }
+            auto callbacks = this->get_callback_metadata();
+
+            for (uint8_t i = 0; i < callbacks.size(); ++i)
+                fields.insert(
+                    std::prev(fields.end()),
+                    create_form_field(InputElement{(*this)[i + 3].c_str()},
+                                      callbacks[i].name,
+                                      callbacks[i].indexable));
 
             return DivElement{
                 std::move(fields),
@@ -104,15 +109,21 @@ namespace esphome
 
         MeterBase *ConfigEntry::build_meter(wmbus_radio::Radio *radio, wmbus_gateway::DisplayManager *display_manager)
         {
-            if (this->meter_)
+            MeterBase *meter = nullptr;
+            if (ImpulseCounter::can_build_from(this))
+                meter = new ImpulseCounter{this};
+            else if (ElectricityMeter::can_build_from(this))
+                meter = new ElectricityMeter{this};
+
+            if (meter)
             {
-                this->meter_->set_meter_params(
+                meter->set_meter_params(
                     (*this)[0], (*this)[1], (*this)[2]);
 
-                auto &sensors = this->meter_->create_sensors(this);
+                auto &sensors = meter->create_sensors(this);
 
                 if (radio)
-                    this->meter_->set_radio(radio);
+                    meter->set_radio(radio);
 
                 if (display_manager)
                     for (auto &sensor : sensors)
@@ -120,7 +131,7 @@ namespace esphome
 
                 ESP_LOGD(TAG, "Built meter with ID: %s, Driver: %s", (*this)[0].c_str(), (*this)[1].c_str());
             }
-            return this->meter_.release();
+            return meter;
         }
 
         std::string ConfigEntry::serialized() const
