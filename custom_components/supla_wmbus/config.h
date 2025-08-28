@@ -15,7 +15,7 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         class ConfigEntry : public std::vector<std::string>
         {
@@ -31,7 +31,7 @@ namespace esphome
             ConfigEntry(const std::string &data = "");
             HTMLElement as_html() const;
             std::string serialized() const;
-            MeterBase *build_meter(wmbus_radio::Radio *radio, wmbus_gateway::DisplayManager *display_manager);
+            MeterBase *build_meter(wmbus_radio::Radio *radio, wmbus_gateway::DisplayManager *display_manager) const;
             MeterType meter_type() const;
         };
 
@@ -58,5 +58,5 @@ namespace esphome
             Frontend frontend_;
         };
 
-    } // namespace supla_wmbus_reader
+    } // namespace supla_wmbus_gateway
 } // namespace esphome

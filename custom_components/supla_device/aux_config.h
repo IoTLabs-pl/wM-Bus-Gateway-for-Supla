@@ -14,8 +14,6 @@ namespace esphome
 {
     namespace supla_device
     {
-        static const char *TAG = "supla_device.aux_config";
-
         template <typename T>
         class EnumOption : public Supla::HtmlElement
         {
@@ -38,6 +36,11 @@ namespace esphome
                         return (T)storage_value;
                 }
                 return (T)0;
+            }
+
+            const char *current_value_c_str() const
+            {
+                return this->options.at(this->load_from_storage());
             }
 
             void send(Supla::WebSender *sender) override
@@ -76,7 +79,7 @@ namespace esphome
                         if (std::strcmp(option.second, val) == 0)
                         {
                             cfg->setUInt8(key, option.first);
-                            ESP_LOGD(TAG, "Stored %s->%d", key, option.first);
+                            ESP_LOGD("supla_device.aux_config", "Stored %s->%d", key, option.first);
                         }
             }
         };

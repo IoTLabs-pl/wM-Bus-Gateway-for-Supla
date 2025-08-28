@@ -4,7 +4,7 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         class ImpulseCounter : public MeterBase,
                                public Supla::Sensor::VirtualImpulseCounter

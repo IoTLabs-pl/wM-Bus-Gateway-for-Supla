@@ -4,7 +4,7 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         class ElectricityMeter : public MeterBase,
                                  public Supla::Sensor::ElectricityMeter

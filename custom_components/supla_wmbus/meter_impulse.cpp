@@ -4,7 +4,7 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         static const char *TAG = "supla.wmbus.meter_impulse";
 

@@ -11,12 +11,13 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         class Component : public esphome::Component
         {
         public:
             void setup() override;
+            void dump_config() override;
             void set_radio(wmbus_radio::Radio *radio) { this->radio = radio; };
             void set_display_manager(wmbus_gateway::DisplayManager *manager) { this->display_manager = manager; };
             void set_blinker_script(script::Script<> *script) { this->blinker_script = script; };

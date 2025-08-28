@@ -16,7 +16,7 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         class ConfigEntry;
         

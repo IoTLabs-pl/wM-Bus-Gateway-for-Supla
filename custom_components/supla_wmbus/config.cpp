@@ -17,7 +17,7 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         static const char *TAG = "supla.wmbus.config";
 
@@ -107,7 +107,7 @@ namespace esphome
             return type;
         }
 
-        MeterBase *ConfigEntry::build_meter(wmbus_radio::Radio *radio, wmbus_gateway::DisplayManager *display_manager)
+        MeterBase *ConfigEntry::build_meter(wmbus_radio::Radio *radio, wmbus_gateway::DisplayManager *display_manager) const
         {
             MeterBase *meter = nullptr;
             if (ImpulseCounter::can_build_from(this))
@@ -223,5 +223,5 @@ namespace esphome
             this->post_data_counter_ = 0;
         }
 
-    } // namespace supla_wmbus_reader
+    } // namespace supla_wmbus_gateway
 } // namespace esphome

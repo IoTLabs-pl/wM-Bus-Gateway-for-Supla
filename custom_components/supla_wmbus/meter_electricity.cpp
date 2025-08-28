@@ -4,7 +4,7 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         const std::vector<CallbackMetadata> ElectricityMeter::callback_metadata = {
             NON_INDEXABLE_CB(ElectricityMeter, "Forward Balanced Energy", setFwdBalancedEnergy, 1e5f),

@@ -103,6 +103,7 @@ async def to_code(config):
         cg.add_define("SUPLA_DEVICE_NAME", f"{author} {project}")
         cg.add_define("SUPLA_DEVICE_SW_VERSION", version)
         cg.add_define("SUPLA_DEVICE_HOSTNAME_PREFIX", project)
+        cg.add_define("SUPLA_DEVICE_LIBRARY_VERSION", config[CONF_VERSION])
 
     supla_device = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(supla_device, config)

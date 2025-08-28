@@ -16,6 +16,8 @@ namespace esphome
 {
     namespace supla_device
     {
+        static const char *TAG = "supla_device";
+
         const SuplaDeviceComponent::ConfigModeOption SuplaDeviceComponent::config_mode_{
             "config_mode",
             "Config Mode",
@@ -66,9 +68,9 @@ namespace esphome
             SuplaDevice.begin();
 
             if (this->config_mode_.load_from_storage() == CONFIG_MODE_ALWAYS_ON)
-            // We need to start web server after first loop of SuplaDevice.iterate()
-            // but we cannot call iterate() in setup() as it registers channels
-            // which are not setup yet...
+                // We need to start web server after first loop of SuplaDevice.iterate()
+                // but we cannot call iterate() in setup() as it registers channels
+                // which are not setup yet...
                 this->set_timeout(5000, []()
                                   { Supla::WebServer::Instance()->start(); });
         }
@@ -127,6 +129,13 @@ namespace esphome
                 break;
             }
         };
+
+        void SuplaDeviceComponent::dump_config()
+        {
+            ESP_LOGCONFIG(TAG, "Supla Device:");
+            ESP_LOGCONFIG(TAG, "  Version: " SUPLA_DEVICE_LIBRARY_VERSION);
+            ESP_LOGCONFIG(TAG, "  Config Mode: %s", this->config_mode_.current_value_c_str());
+        }
 
     }
 }

@@ -2,7 +2,7 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         static const char *TAG = "supla.wmbus.sensor";
 
@@ -22,5 +22,5 @@ namespace esphome
             this->set_field_name(field_name);
             this->add_on_state_callback(std::move(callback));
         }
-    } // namespace supla_wmbus_reader
+    } // namespace supla_wmbus_gateway
 } // namespace esphome
