@@ -7,7 +7,6 @@
 
 #include "esphome/core/log.h"
 #include "esphome/components/wmbus_common/meters.h"
-#include "config.h"
 #include "sensor.h"
 
 #define INDEXABLE_CB(T, name, method, multiplier) \
@@ -17,8 +16,10 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
+        class ConfigEntry;
+        
         struct CallbackMetadata
         {
             const char *name;

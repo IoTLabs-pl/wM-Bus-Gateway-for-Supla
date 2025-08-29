@@ -4,17 +4,15 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         class ElectricityMeter : public MeterBase,
                                  public Supla::Sensor::ElectricityMeter
         {
         public:
-            ElectricityMeter(bool multiphase);
-            static ElectricityMeter *create(ConfigEntry *ce);
-
-        protected:
-            static const std::vector<CallbackMetadata> callback_metadata_;
+            ElectricityMeter(const ConfigEntry *ce);
+            static bool can_build_from(const ConfigEntry *ce);
+            static const std::vector<CallbackMetadata> callback_metadata;
         };
     }
 }

@@ -8,8 +8,11 @@
 
 namespace esphome
 {
-  namespace supla_wmbus_reader
+  namespace supla_wmbus_gateway
   {
+
+    static const char *TAG = "supla_wmbus";
+
     const Component::LEDModeOption Component::led_mode_{
         "led_mode",
         "LED Mode",
@@ -35,7 +38,7 @@ namespace esphome
         this->radio->add_frame_handler(std::bind(&Component::blink, this));
         break;
       case LEDMode::LED_MATCH:
-        for (const auto &meter : this->meters)
+        for (const auto meter : this->meters)
           meter->on_telegram(std::bind(&Component::blink, this));
         break;
       }
@@ -44,6 +47,16 @@ namespace esphome
     void Component::blink() const
     {
       this->blinker_script->execute();
+    }
+
+    void Component::dump_config()
+    {
+      ESP_LOGCONFIG(TAG, "Supla wM-Bus Gateway:");
+      ESP_LOGCONFIG(TAG, "  Meters configured: %zu", this->meters.size());
+      ESP_LOGCONFIG(TAG, "  LED Mode: %s", this->led_mode_.current_value_c_str());
+
+      for (const auto meter : this->meters)
+        meter->dump_config();
     }
 
   };

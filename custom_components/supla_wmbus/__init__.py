@@ -13,7 +13,7 @@ CONF_RADIO_ID = "radio_id"
 CONF_DISPLAY_MANAGER_ID = "manager_id"
 CONF_BLINKER_SCRIPT_ID = "blinker_script_id"
 
-SuplaWMBusComponent = cg.esphome_ns.namespace("supla_wmbus_reader").class_(
+SuplaWMBusComponent = cg.esphome_ns.namespace("supla_wmbus_gateway").class_(
     "Component", cg.Component
 )
 

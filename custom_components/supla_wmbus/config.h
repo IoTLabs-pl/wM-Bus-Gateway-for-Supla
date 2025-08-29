@@ -11,12 +11,12 @@
 
 #include "supla/network/html_element.h"
 
+#include "meter_base.h"
+
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
-        class MeterBase;
-
         class ConfigEntry : public std::vector<std::string>
         {
             using HTMLElement = supla_device::HTMLElement;
@@ -25,13 +25,13 @@ namespace esphome
             using DivElement = supla_device::DivElement;
             static std::vector<std::string> split_string(std::string serialized, size_t minimum_size = 0);
 
-            std::unique_ptr<MeterBase> meter_;
+            const std::vector<CallbackMetadata> &get_callback_metadata() const;
 
         public:
             ConfigEntry(const std::string &data = "");
             HTMLElement as_html() const;
             std::string serialized() const;
-            MeterBase *build_meter(wmbus_radio::Radio *radio, wmbus_gateway::DisplayManager *display_manager);
+            MeterBase *build_meter(wmbus_radio::Radio *radio, wmbus_gateway::DisplayManager *display_manager) const;
             MeterType meter_type() const;
         };
 
@@ -58,5 +58,5 @@ namespace esphome
             Frontend frontend_;
         };
 
-    } // namespace supla_wmbus_reader
+    } // namespace supla_wmbus_gateway
 } // namespace esphome

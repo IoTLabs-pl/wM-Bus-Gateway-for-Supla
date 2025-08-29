@@ -1,8 +1,10 @@
 #include "meter_base.h"
 
+#include "config.h"
+
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         static const char *TAG = "supla.wmbus.meter_base";
 
@@ -13,7 +15,6 @@ namespace esphome
 
         std::list<Sensor> &MeterBase::create_sensors(const ConfigEntry *config)
         {
-            // ...existing code from MeterBase::create_sensors...
             auto &callbacks = this->callback_metadata_;
             
             ESP_LOGD(TAG, "Building sensors for %s", this->get_id().c_str());

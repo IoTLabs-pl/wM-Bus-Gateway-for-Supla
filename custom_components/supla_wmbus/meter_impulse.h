@@ -4,19 +4,21 @@
 
 namespace esphome
 {
-    namespace supla_wmbus_reader
+    namespace supla_wmbus_gateway
     {
         class ImpulseCounter : public MeterBase,
                                public Supla::Sensor::VirtualImpulseCounter
         {
         public:
-            ImpulseCounter(uint16_t fcn);
-            static ImpulseCounter *create(ConfigEntry *ce);
+            ImpulseCounter(const ConfigEntry *ce);
+            static bool can_build_from(const ConfigEntry *ce);
+            static const std::vector<CallbackMetadata> callback_metadata;
+
             Supla::ApplyConfigResult applyChannelConfig(TSD_ChannelConfig *result, bool) override;
             void fillChannelConfig(void *channelConfig, int *size, uint8_t) override;
 
         protected:
-            static const std::vector<CallbackMetadata> callback_metadata_;
+            static int get_supla_fcn(const ConfigEntry *ce);
         };
     }
 }
