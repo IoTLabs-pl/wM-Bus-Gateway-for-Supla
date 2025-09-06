@@ -27,6 +27,10 @@ namespace esphome
 
             const std::vector<CallbackMetadata> &get_callback_metadata() const;
 
+            const std::string &id() const;
+            const std::string &driver() const;
+            const std::string &key() const;
+
         public:
             ConfigEntry(const std::string &data = "");
             HTMLElement as_html() const;

@@ -62,7 +62,8 @@ namespace esphome
 
         struct InputElement : HTMLElement
         {
-            InputElement(const char *content, const char *type = "text");
+            InputElement(const char *content, const char *type);
+            InputElement(const char *content, std::list<Attribute> &&extra_attributes = {}, char const *type = "text");
         };
 
         struct SelectElement : HTMLElement
