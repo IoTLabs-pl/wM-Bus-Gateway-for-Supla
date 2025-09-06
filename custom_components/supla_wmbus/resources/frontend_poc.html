@@ -20,7 +20,7 @@
           <div class="form-field">
             <label>
               ID
-              <input type="number" class="meter_field" />
+              <input type="text" required pattern="[0-9a-fA-F]{1,8}" class="meter_field" />
             </label>
           </div>
 
@@ -56,6 +56,7 @@
         </div>
         <button type="button" onclick="add_meter()">Add Meter</button>
       </div>
+      <button type="submit">Submit</button>
     </form>
   </body>
 

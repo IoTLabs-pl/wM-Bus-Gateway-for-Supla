@@ -39,6 +39,21 @@ namespace esphome
             }
         }
 
+        inline const std::string &ConfigEntry::id() const
+        {
+            return (*this)[0];
+        }
+
+        inline const std::string &ConfigEntry::driver() const
+        {
+            return (*this)[1];
+        }
+
+        inline const std::string &ConfigEntry::key() const
+        {
+            return (*this)[2];
+        }
+
         const std::vector<CallbackMetadata> &ConfigEntry::get_callback_metadata() const
         {
             static const std::vector<CallbackMetadata> empty;
@@ -56,14 +71,14 @@ namespace esphome
 
             std::list<SelectElement::Option> driver_options;
             for (const auto &driver_name : wmbus_common::driver_names)
-                driver_options.emplace_back(driver_name.c_str(), driver_name == (*this)[1]);
+                driver_options.emplace_back(driver_name.c_str(), driver_name == this->driver());
 
             std::list<HTMLElement> fields = {
                 InputElement{"", "hidden"},
                 {"h3", ""},
-                create_form_field(InputElement{(*this)[0].c_str(), "number"}, "ID"),
+                create_form_field(InputElement{this->id().c_str(), {{"required"}, {"pattern", "[0-9a-fA-F]{1,8}"}}}, "ID"),
                 create_form_field(SelectElement{std::move(driver_options)}, "Driver"),
-                create_form_field(InputElement{(*this)[2].c_str()}, "Key"),
+                create_form_field(InputElement{this->key().c_str(), {{"pattern", "[0-9a-fA-F]{0,32}"}}}, "Key"),
                 create_form_field(HTMLElement{"button", "Remove", {}, {{"type", "button"}}})};
 
             auto callbacks = this->get_callback_metadata();
@@ -102,8 +117,8 @@ namespace esphome
 
         MeterType ConfigEntry::meter_type() const
         {
-            auto di = lookupDriver((*this)[1]);
-            auto type = (!(*this)[0].empty() && di) ? di->type() : MeterType::UnknownMeter;
+            auto di = lookupDriver(this->driver());
+            auto type = (!this->id().empty() && di) ? di->type() : MeterType::UnknownMeter;
             return type;
         }
 
@@ -117,8 +132,13 @@ namespace esphome
 
             if (meter)
             {
+                auto id = this->id();
+                id = std::string(8 - id.length(), '0') + id;
+
                 meter->set_meter_params(
-                    (*this)[0], (*this)[1], (*this)[2]);
+                    id,
+                    this->driver(),
+                    this->key());
 
                 auto &sensors = meter->create_sensors(this);
 
@@ -129,7 +149,7 @@ namespace esphome
                     for (auto &sensor : sensors)
                         display_manager->add_sensor(&sensor);
 
-                ESP_LOGD(TAG, "Built meter with ID: %s, Driver: %s", (*this)[0].c_str(), (*this)[1].c_str());
+                ESP_LOGD(TAG, "Built meter with ID: %s, Driver: %s", id.c_str(), this->driver().c_str());
             }
             return meter;
         }

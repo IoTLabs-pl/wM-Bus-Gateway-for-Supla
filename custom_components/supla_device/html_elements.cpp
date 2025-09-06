@@ -70,6 +70,10 @@ namespace esphome
 
         // InputElement
         InputElement::InputElement(const char *content, const char *type)
+            : InputElement(content, {}, type)
+        {
+        }
+        InputElement::InputElement(const char *content, std::list<Attribute> &&extra_attributes, const char *type)
             : HTMLElement("input",
                           "",
                           {},
@@ -78,6 +82,9 @@ namespace esphome
                               {"value", content},
                           })
         {
+            // Merge extra_attributes into attributes
+            for (auto &&attr : extra_attributes)
+                this->attributes.push_back(std::move(attr));
         }
 
         // SelectElement::Option
