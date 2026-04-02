@@ -37,7 +37,7 @@ wmbus_common:
   drivers: all
 
 supla_device:
-  version: v25.6
+  version: v26.4
 
 supla_wmbus:
 
