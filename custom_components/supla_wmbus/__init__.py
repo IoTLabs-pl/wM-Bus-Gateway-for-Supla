@@ -1,9 +1,12 @@
 from esphome import codegen as cg
 from esphome import config_validation as cv
+from esphome.core.entity_helpers import register_unit_of_measurement
 from esphome.components.script import Script
+from esphome.components.wmbus_common.driver_loader.units import units_dict
 from esphome.components.wmbus_gateway import DisplayManager
 from esphome.components.wmbus_radio import RadioComponent
 from esphome.const import CONF_ID
+from esphome.cpp_generator import AssignmentExpression
 
 AUTO_LOAD = ["wmbus_meter"]
 DEPENDENCIES = ["supla_device"]
@@ -38,5 +41,19 @@ async def to_code(config):
     cg.add(var.set_radio(radio))
     cg.add(var.set_display_manager(display_manager))
     cg.add(var.set_blinker_script(blinker_script))
+
+    cg.add_global(
+        AssignmentExpression(
+            cg.std_ns.namespace("unordered_map")
+            .template(cg.std_string, cg.uint8)
+            .operator("const"),
+            "",
+            "wmbus_uom_idx_map",
+            [
+                (lcase, register_unit_of_measurement(hcase))
+                for lcase, hcase in units_dict().items()
+            ],
+        )
+    )
 
     await cg.register_component(var, config)

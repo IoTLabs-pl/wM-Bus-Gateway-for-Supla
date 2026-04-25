@@ -3,9 +3,9 @@ packages:
 
 esphome:
   name: supla-wmbus
-  min_version: 2025.7.0
+  min_version: 2026.4.0
   project:
-    version: v1.0.4-supla
+    version: v1.1.0-supla
 
 esp32:
   framework:
@@ -36,6 +36,8 @@ wmbus_radio:
 wmbus_common:
   drivers: all
 
+wmbus_meter: []
+
 supla_device:
   version: v25.6
 
@@ -53,7 +55,7 @@ script:
             - delay: 50ms
 
 image:
-  - id: !extend qr_code
+  - id: !extend qrcode
     file: resources/qrcode.png
 
 binary_sensor:
