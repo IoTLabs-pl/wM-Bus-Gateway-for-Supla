@@ -3,9 +3,9 @@
 This repository contains the source code for the [**wM-Bus Gateway**](http://github.com/IoTLabs-pl/wM-Bus-Gateway) allowing for communication with [Supla](https://supla.org).
 
 <p align="center">
-    <img src="https://iotlabs.pl/wp-content/uploads/2025/05/IMG_1327.jpg" alt="wM-Bus Gateway" width="30%" />
-    <img src="https://iotlabs.pl/wp-content/uploads/2025/05/IMG_1338.jpg" alt="wM-Bus Gateway" width="30%" />
-    <img src="https://iotlabs.pl/wp-content/uploads/2025/05/IMG_1337.jpg" alt="wM-Bus Gateway" width="30%" />
+    <img src="https://iotlabs.pl/wp-content/uploads/2025/05/P1010329.jpg" alt="wM-Bus Gateway" width="30%" />
+    <img src="https://iotlabs.pl/wp-content/uploads/2025/11/ad2small.jpg" alt="wM-Bus Gateway" width="30%" />
+    <img src="https://iotlabs.pl/wp-content/uploads/2025/05/4_total_energy2.jpg" alt="wM-Bus Gateway" width="30%" />
 </p>
 
 ---
