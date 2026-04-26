@@ -21,7 +21,7 @@ namespace esphome
             if (auto it = wmbus_uom_idx_map.find(unit_of_measurement); it != wmbus_uom_idx_map.end())
                 uom_idx = it->second;
 
-            this->configure_entity_(sensor_name.c_str(), 0, uom_idx << ENTITY_FIELD_UOM_SHIFT);
+            this->configure_entity_(name_.c_str(), 0, uom_idx << ENTITY_FIELD_UOM_SHIFT);
             this->set_field_name(field_name);
             this->add_on_state_callback(std::move(callback));
         }

@@ -21,6 +21,9 @@ esp32:
 mdns:
   disabled: True
 
+network:
+    enable_ipv6: true
+
 wmbus_radio:
   on_frame:
     then:
@@ -39,7 +42,7 @@ wmbus_common:
 wmbus_meter: []
 
 supla_device:
-  version: v25.6
+  version: v26.4
 
 supla_wmbus:
 

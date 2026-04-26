@@ -3,6 +3,7 @@
 #include "esphome/core/application.h"
 #include "esphome/core/log.h"
 
+#include "supla/clock/clock.h"
 #include "supla/network/html/device_info.h"
 #include "supla/network/html/protocol_parameters.h"
 #include "supla/network/html/wifi_parameters.h"

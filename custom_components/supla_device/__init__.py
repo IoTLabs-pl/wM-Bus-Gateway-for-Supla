@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from re import Match, compile
+from re import compile
 from string import punctuation
 
 from esphome import codegen as cg
@@ -19,7 +19,8 @@ SuplaDeviceComponent = cg.esphome_ns.namespace("supla_device").class_(
 )
 
 COMPONENT_NAME = "supla-device"
-RELATIVE_PATH_RE = compile(r"(?:\.\./)+[\w\-/.]+")
+RELATIVE_PATH_RE = compile(r"(?P<path>(?:\.\./)+[\w\-/.]+)")
+CMAKE_SRC_RE = compile(r"\$\{SUPLA_(?:DEVICE|COMMON)_SRC_DIR\}/(?P<path>[\w\-/.]+)")
 REPO_URL = "https://github.com/SUPLA/supla-device.git"
 COMPONENTS_PATH = Path("extras/esp-idf")
 
@@ -41,26 +42,21 @@ async def to_code(config):
     # The standard way to add an idf component is to use
     # `esp32.components` config option in yaml
 
-    _REGISTERED_FILES: dict[str, Path] = {}
+    registered_files: dict[str, Path] = {}
 
     cg.add_build_flag("-DSUPLA_DEVICE")
     cg.add_build_flag("-DSUPLA_DEVICE_ESP32")
 
-    def normalize_path(base: Path, relative_path: Match[str]) -> str:
+    def deduplicate(path: Path) -> Path:
         # This is a workaround because platformio crashes when
         # inside components there are source files with the same name
-        current_path = (base / relative_path[0]).resolve()
-
-        if current_path.is_file() and current_path.suffix in {".cpp", ".c"}:
-            if _REGISTERED_FILES.get(current_path.stem, current_path) != current_path:
-                new_filename = f"{current_path.parent.stem}_{current_path.stem}"
-                new_path = current_path.rename(current_path.with_stem(new_filename))
-                _LOGGER.warning(f"Renamed {current_path} to {new_path}")
-                current_path = new_path
-
-            _REGISTERED_FILES[current_path.stem] = current_path
-
-        return str(current_path)
+        if path.is_file() and path.suffix in {".cpp", ".c"}:
+            if registered_files.get(path.stem, path) != path:
+                new_name = f"{path.parent.stem}_{path.stem}"
+                path = path.rename(path.with_stem(new_name))
+                _LOGGER.warning(f"Renamed to {path}")
+            registered_files[path.stem] = path
+        return path
 
     git_path, _ = clone_or_update(
         refresh=TimePeriod(days=7),
@@ -70,26 +66,32 @@ async def to_code(config):
     )
     git_path = Path(git_path)
 
-    COMPONENT_PATH = git_path / COMPONENTS_PATH / COMPONENT_NAME
-    CMAKELISTS_PATH = COMPONENT_PATH / "CMakeLists.txt"
+    component_path = git_path / COMPONENTS_PATH / COMPONENT_NAME
+    cmake_dir     = git_path / "cmake"
+    src_dir       = git_path / "src"
+    cmakelists    = component_path / "CMakeLists.txt"
 
-    cmakelists_content = CMAKELISTS_PATH.read_text()
+    # Strip ${COMPONENT_DIR}/ and embedded cert filenames before path resolution
+    content = cmakelists.read_text().replace("${COMPONENT_DIR}/", "")
+    for cert in component_path.glob("*_cert.pem"):
+        content = content.replace(cert.name, "")
+    cmakelists.write_text(content)
 
-    cmakelists_content = RELATIVE_PATH_RE.sub(
-        lambda path: normalize_path(COMPONENT_PATH, path), cmakelists_content
-    )
-
-    for cert in COMPONENT_PATH.glob("*_cert.pem"):
-        cmakelists_content = cmakelists_content.replace(cert.name, "")
-
-    CMAKELISTS_PATH.write_text(cmakelists_content)
+    for cmake_file, base_dir, regex in [
+        (cmakelists,                             component_path,           RELATIVE_PATH_RE),
+        (cmake_dir / "SuplaDeviceSources.cmake", src_dir,                  CMAKE_SRC_RE),
+        (cmake_dir / "SuplaCommonSources.cmake", src_dir / "supla-common", CMAKE_SRC_RE),
+    ]:
+        content = cmake_file.read_text()
+        content = regex.sub(
+            lambda m, d=base_dir: str(deduplicate((d / m["path"]).resolve())), content
+        )
+        cmake_file.write_text(content)
 
     add_idf_component(
         name=COMPONENT_NAME,
-        path=str(Path(git_path) / COMPONENTS_PATH / COMPONENT_NAME),
+        path=str(component_path),
     )
-
-    ## Workaround end
 
     if project_conf := CORE.config[CONF_ESPHOME].get(CONF_PROJECT):
         author, project = project_conf[CONF_NAME].split(".", 1)
@@ -99,7 +101,6 @@ async def to_code(config):
             .strip(punctuation)
             .removeprefix("v")
         )
-
         cg.add_define("SUPLA_DEVICE_NAME", f"{author} {project}")
         cg.add_define("SUPLA_DEVICE_SW_VERSION", version)
         cg.add_define("SUPLA_DEVICE_HOSTNAME_PREFIX", project)

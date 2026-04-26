@@ -6,6 +6,7 @@
 #include "esphome/core/log.h"
 
 #include "supla/network/html_element.h"
+#include "supla/storage/storage.h"
 #include "supla/storage/config.h"
 
 #include "html_elements.h"

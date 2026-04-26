@@ -3,6 +3,7 @@
 #include "supla/sensor/electricity_meter.h"
 #include "supla/sensor/virtual_impulse_counter.h"
 #include "supla/storage/config.h"
+#include "supla/storage/storage.h"
 
 #include "esphome/core/log.h"
 #include "esphome/components/wmbus_common/component.h"
