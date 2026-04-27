@@ -6,8 +6,6 @@
 
 #include "esphome/components/wmbus_meter/sensor.h"
 
-extern const std::unordered_map<std::string, uint8_t> wmbus_uom_idx_map;
-
 namespace esphome
 {
     namespace supla_wmbus_gateway

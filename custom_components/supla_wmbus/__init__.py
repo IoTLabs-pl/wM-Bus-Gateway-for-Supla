@@ -6,7 +6,6 @@ from esphome.components.wmbus_common.driver_loader.units import units_dict
 from esphome.components.wmbus_gateway import DisplayManager
 from esphome.components.wmbus_radio import RadioComponent
 from esphome.const import CONF_ID
-from esphome.cpp_generator import AssignmentExpression
 
 AUTO_LOAD = ["wmbus_meter"]
 DEPENDENCIES = ["supla_device"]
@@ -32,6 +31,7 @@ CONFIG_SCHEMA = cv.Schema(
 
 async def to_code(config):
     cg.add_define("USE_WMBUS_METER_SENSOR")
+    cg.add_define("USE_ENTITY_UNIT_OF_MEASUREMENT")
 
     radio = await cg.get_variable(config[CONF_RADIO_ID])
     display_manager = await cg.get_variable(config[CONF_DISPLAY_MANAGER_ID])
@@ -42,18 +42,7 @@ async def to_code(config):
     cg.add(var.set_display_manager(display_manager))
     cg.add(var.set_blinker_script(blinker_script))
 
-    cg.add_global(
-        AssignmentExpression(
-            cg.std_ns.namespace("unordered_map")
-            .template(cg.std_string, cg.uint8)
-            .operator("const"),
-            "",
-            "wmbus_uom_idx_map",
-            [
-                (lcase, register_unit_of_measurement(hcase))
-                for lcase, hcase in units_dict().items()
-            ],
-        )
-    )
+    for u in units_dict().values():
+        register_unit_of_measurement(u)
 
     await cg.register_component(var, config)
