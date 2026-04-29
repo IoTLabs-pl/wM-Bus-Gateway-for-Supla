@@ -69,23 +69,16 @@ namespace esphome
 
         void ConfigEntry::renderHtml(Supla::WebSender *sender) const
         {
-            auto box = sender->tag("div");
-            box.attr("class", "box collapsible collapsed meter");
-            box.body([&]() {
+            sender->tag("div").attr("class", "box collapsible collapsed meter").body([&]()
+                                                                                     {
                 // hidden input for serialized value
-                sender->voidTag("input").attr("type", "hidden").finish();
-
+                sender->voidTag("input").attr("type", "hidden");
                 sender->tag("h3").body("");
 
                 // ID
                 sender->formField([&]() {
                     sender->labelFor("", "ID");
-                    auto input = sender->voidTag("input");
-                    input.attr("type", "text");
-                    input.attr("value", this->id().c_str());
-                    input.attr("required", "");
-                    input.attr("pattern", "[0-9a-fA-F]{1,8}");
-                    input.finish();
+                    sender->voidTag("input").attr("type", "text").attr("value", this->id().c_str()).attr("required", "").attr("pattern", "[0-9a-fA-F]{1,8}");
                 });
 
                 // Driver
@@ -93,19 +86,14 @@ namespace esphome
                     sender->labelFor("", "Driver");
                     sender->selectInput(nullptr, nullptr, [&]() {
                         for (const auto &driver_name : wmbus_common::driver_names)
-                            sender->selectOption(driver_name.c_str(), driver_name.c_str(),
-                                                 driver_name == this->driver());
+                            sender->selectOption(driver_name.c_str(), driver_name.c_str(), driver_name == this->driver());
                     });
                 });
 
                 // Key
                 sender->formField([&]() {
                     sender->labelFor("", "Key");
-                    auto input = sender->voidTag("input");
-                    input.attr("type", "text");
-                    input.attr("value", this->key().c_str());
-                    input.attr("pattern", "[0-9a-fA-F]{0,32}");
-                    input.finish();
+                    sender->voidTag("input").attr("type", "text").attr("value", this->key().c_str()).attr("pattern", "[0-9a-fA-F]{0,32}");
                 });
 
                 // Callback fields
@@ -123,11 +111,8 @@ namespace esphome
 
                 // Remove button
                 sender->formField([&]() {
-                    auto btn = sender->tag("button");
-                    btn.attr("type", "button");
-                    btn.body("Remove");
-                });
-            });
+                    sender->tag("button").attr("type", "button").body("Remove");
+                }); });
         }
 
         std::vector<std::string> ConfigEntry::split_string(std::string serialized, size_t minimum_size)
@@ -222,23 +207,21 @@ namespace esphome
 
         void Config::Frontend::send(Supla::WebSender *sender)
         {
-            auto box = sender->tag("div");
-            box.attr("class", "box");
-            box.body([&]() {
-                sender->tag("script").body(frontend_script);
+            sender->tag("div").attr("class", "box").body([&]()
+                                                         {
+                sender->tag("script").body([&](){
+                    sender->send(frontend_script);                                    
+                });
                 sender->tag("h3").body("wM-Bus Meters");
-                auto btn = sender->tag("button");
-                btn.attr("type", "button");
-                btn.attr("id", "add_meter");
-                btn.body("New Meter");
-
+                
                 auto entries = Config::pull();
                 if (entries.empty())
                     entries.emplace_back();
 
                 for (const auto &entry : entries)
                     entry.renderHtml(sender);
-            });
+                
+                sender->tag("button").attr("type", "button").attr("id", "add_meter").body("New Meter"); });
         }
 
         bool Config::Frontend::handleResponse(const char *key, const char *value)
