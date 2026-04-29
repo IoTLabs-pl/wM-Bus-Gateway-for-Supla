@@ -12,7 +12,6 @@ esp32:
     advanced:
       enable_lwip_dhcp_server: true
       compiler_optimization: PERF
-      loop_task_stack_size: 32768
     log_level: WARN
     sdkconfig_options:
       CONFIG_HTTPD_MAX_REQ_HDR_LEN: "1024"
