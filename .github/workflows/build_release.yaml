@@ -25,7 +25,7 @@ jobs:
           mv "$FILE" "$BAK_FILE"
           jq '.new_install_prompt_erase = true' "$BAK_FILE" > "$FILE"
       - name: Upload binaries to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             ${{ steps.build_firmware.outputs.name }}/*.factory.bin
