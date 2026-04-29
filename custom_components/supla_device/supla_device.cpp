@@ -3,11 +3,13 @@
 #include "esphome/core/application.h"
 #include "esphome/core/log.h"
 
+#include "supla/clock/clock.h"
 #include "supla/network/html/device_info.h"
 #include "supla/network/html/protocol_parameters.h"
 #include "supla/network/html/wifi_parameters.h"
 #include "supla/device/supla_ca_cert.h"
 
+#include "esp_mqtt.h"
 #include "esp_idf_web_server.h"
 #include "esp_idf_wifi.h"
 #include "nvs_config.h"
@@ -36,13 +38,9 @@ namespace esphome
 
         void SuplaDeviceComponent::setup()
         {
-            esp_log_level_set("SUPLA", ESP_LOG_DEBUG);
-
             new Supla::Html::DeviceInfo(&SuplaDevice);
             new Supla::Html::WifiParameters;
             new Supla::Html::ProtocolParameters;
-
-            new Supla::Clock;
 
             // Nvs based device configuration storage
             new Supla::NvsConfig;
@@ -65,14 +63,26 @@ namespace esphome
 #endif
             SuplaDevice.setMacLengthInHostname(3);
 
+            // We need to start web server after first loop of SuplaDevice.iterate()
+            // but we cannot call iterate() in setup() as it registers channels
+            // which are not setup yet...
+            this->set_timeout(5000, [this]()
+                              { start_loop(); });
+
+            this->disable_loop();
+        }
+
+        void SuplaDeviceComponent::start_loop()
+        {
+            new Supla::Protocol::EspMqtt(&SuplaDevice);
+
             SuplaDevice.begin();
+            SuplaDevice.iterate();
 
             if (this->config_mode_.load_from_storage() == CONFIG_MODE_ALWAYS_ON)
-                // We need to start web server after first loop of SuplaDevice.iterate()
-                // but we cannot call iterate() in setup() as it registers channels
-                // which are not setup yet...
-                this->set_timeout(5000, []()
-                                  { Supla::WebServer::Instance()->start(); });
+                Supla::WebServer::Instance()->start();
+
+            this->enable_loop();
         }
 
         void SuplaDeviceComponent::loop()

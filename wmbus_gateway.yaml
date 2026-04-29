@@ -1,16 +1,18 @@
 packages:
-  wmbus_gateway: github://IoTLabs-pl/wM-Bus-Gateway/packages/wmbus_gateway.yaml@v1.0.4
+  wmbus_gateway: github://IoTLabs-pl/wM-Bus-Gateway/packages/wmbus_gateway.yaml@v1.1.3
 
 esphome:
   name: supla-wmbus
-  min_version: 2025.7.0
+  min_version: 2026.4.0
   project:
-    version: v1.0.4-supla
+    version: v1.1.0-supla
 
 esp32:
   framework:
     advanced:
       enable_lwip_dhcp_server: true
+      compiler_optimization: PERF
+    log_level: WARN
     sdkconfig_options:
       CONFIG_HTTPD_MAX_REQ_HDR_LEN: "1024"
       CONFIG_SUPLA_DEBUG_BUILD: "y"
@@ -20,6 +22,9 @@ esp32:
 
 mdns:
   disabled: True
+
+network:
+    enable_ipv6: true
 
 wmbus_radio:
   on_frame:
@@ -36,8 +41,10 @@ wmbus_radio:
 wmbus_common:
   drivers: all
 
+wmbus_meter: []
+
 supla_device:
-  version: v25.6
+  version: v26.4
 
 supla_wmbus:
 
@@ -53,7 +60,7 @@ script:
             - delay: 50ms
 
 image:
-  - id: !extend qr_code
+  - id: !extend qrcode
     file: resources/qrcode.png
 
 binary_sensor:

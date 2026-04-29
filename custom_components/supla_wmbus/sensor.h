@@ -16,11 +16,10 @@ namespace esphome
             Sensor(const std::string &sensor_name,
                    const std::string &field_name,
                    const std::string &unit_of_measurement,
-                   std::function<void(float)>&& callback);
+                   std::function<void(float)> &&callback);
 
         protected:
             std::string name_;
-            std::string unit_of_measurement_;
         };
     }
 }

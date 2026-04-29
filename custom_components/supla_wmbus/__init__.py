@@ -1,6 +1,8 @@
 from esphome import codegen as cg
 from esphome import config_validation as cv
+from esphome.core.entity_helpers import register_unit_of_measurement
 from esphome.components.script import Script
+from esphome.components.wmbus_common.driver_loader.units import units_dict
 from esphome.components.wmbus_gateway import DisplayManager
 from esphome.components.wmbus_radio import RadioComponent
 from esphome.const import CONF_ID
@@ -29,6 +31,7 @@ CONFIG_SCHEMA = cv.Schema(
 
 async def to_code(config):
     cg.add_define("USE_WMBUS_METER_SENSOR")
+    cg.add_define("USE_ENTITY_UNIT_OF_MEASUREMENT")
 
     radio = await cg.get_variable(config[CONF_RADIO_ID])
     display_manager = await cg.get_variable(config[CONF_DISPLAY_MANAGER_ID])
@@ -38,5 +41,8 @@ async def to_code(config):
     cg.add(var.set_radio(radio))
     cg.add(var.set_display_manager(display_manager))
     cg.add(var.set_blinker_script(blinker_script))
+
+    for u in units_dict().values():
+        register_unit_of_measurement(u)
 
     await cg.register_component(var, config)
