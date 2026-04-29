@@ -5,11 +5,11 @@
 #include <string>
 #include <vector>
 
-#include "esphome/components/supla_device/html_elements.h"
 #include "esphome/components/wmbus_common/meters.h"
 #include "esphome/components/wmbus_gateway/display_manager.h"
 
 #include "supla/network/html_element.h"
+#include "supla/network/web_sender.h"
 
 #include "meter_base.h"
 
@@ -19,10 +19,6 @@ namespace esphome
     {
         class ConfigEntry : public std::vector<std::string>
         {
-            using HTMLElement = supla_device::HTMLElement;
-            using SelectElement = supla_device::SelectElement;
-            using InputElement = supla_device::InputElement;
-            using DivElement = supla_device::DivElement;
             static std::vector<std::string> split_string(std::string serialized, size_t minimum_size = 0);
 
             const std::vector<CallbackMetadata> &get_callback_metadata() const;
@@ -33,7 +29,7 @@ namespace esphome
 
         public:
             ConfigEntry(const std::string &data = "");
-            HTMLElement as_html() const;
+            void renderHtml(Supla::WebSender *sender) const;
             std::string serialized() const;
             MeterBase *build_meter(wmbus_radio::Radio *radio, wmbus_gateway::DisplayManager *display_manager) const;
             MeterType meter_type() const;
@@ -50,8 +46,6 @@ namespace esphome
                 void onProcessingEnd() override;
 
             protected:
-                using DivElement = supla_device::DivElement;
-
                 size_t post_data_counter_ = 0;
             };
 

@@ -67,37 +67,68 @@ namespace esphome
             return empty;
         }
 
-        ConfigEntry::HTMLElement ConfigEntry::as_html() const
+        void ConfigEntry::renderHtml(Supla::WebSender *sender) const
         {
+            auto box = sender->tag("div");
+            box.attr("class", "box collapsible collapsed meter");
+            box.body([&]() {
+                // hidden input for serialized value
+                sender->voidTag("input").attr("type", "hidden").finish();
 
-            std::list<SelectElement::Option> driver_options;
-            for (const auto &driver_name : wmbus_common::driver_names)
-                driver_options.emplace_back(driver_name.c_str(), driver_name == this->driver());
+                sender->tag("h3").body("");
 
-            std::list<HTMLElement> fields = {
-                InputElement{"", "hidden"},
-                {"h3", ""},
-                create_form_field(InputElement{this->id().c_str(), {{"required"}, {"pattern", "[0-9a-fA-F]{1,8}"}}}, "ID"),
-                create_form_field(SelectElement{std::move(driver_options)}, "Driver"),
-                create_form_field(InputElement{this->key().c_str(), {{"pattern", "[0-9a-fA-F]{0,32}"}}}, "Key"),
-                create_form_field(HTMLElement{"button", "Remove", {}, {{"type", "button"}}})};
+                // ID
+                sender->formField([&]() {
+                    sender->labelFor("", "ID");
+                    auto input = sender->voidTag("input");
+                    input.attr("type", "text");
+                    input.attr("value", this->id().c_str());
+                    input.attr("required", "");
+                    input.attr("pattern", "[0-9a-fA-F]{1,8}");
+                    input.finish();
+                });
 
-            auto callbacks = this->get_callback_metadata();
+                // Driver
+                sender->formField([&]() {
+                    sender->labelFor("", "Driver");
+                    sender->selectInput(nullptr, nullptr, [&]() {
+                        for (const auto &driver_name : wmbus_common::driver_names)
+                            sender->selectOption(driver_name.c_str(), driver_name.c_str(),
+                                                 driver_name == this->driver());
+                    });
+                });
 
-            for (uint8_t i = 0; i < callbacks.size(); ++i)
-                fields.insert(
-                    std::prev(fields.end()),
-                    create_form_field(InputElement{(*this)[i + 3].c_str()},
-                                      callbacks[i].name,
-                                      callbacks[i].indexable));
+                // Key
+                sender->formField([&]() {
+                    sender->labelFor("", "Key");
+                    auto input = sender->voidTag("input");
+                    input.attr("type", "text");
+                    input.attr("value", this->key().c_str());
+                    input.attr("pattern", "[0-9a-fA-F]{0,32}");
+                    input.finish();
+                });
 
-            return DivElement{
-                std::move(fields),
+                // Callback fields
+                auto callbacks = this->get_callback_metadata();
+                for (uint8_t i = 0; i < callbacks.size(); ++i)
                 {
-                    {"class", "box collapsible collapsed meter"},
-                },
-            };
-        };
+                    sender->formField([&]() {
+                        auto label = sender->tag("label");
+                        if (callbacks[i].indexable)
+                            label.attr("data-indexable", "");
+                        label.body(callbacks[i].name);
+                        sender->textInput(nullptr, nullptr, (*this)[i + 3].c_str());
+                    });
+                }
+
+                // Remove button
+                sender->formField([&]() {
+                    auto btn = sender->tag("button");
+                    btn.attr("type", "button");
+                    btn.body("Remove");
+                });
+            });
+        }
 
         std::vector<std::string> ConfigEntry::split_string(std::string serialized, size_t minimum_size)
         {
@@ -191,23 +222,23 @@ namespace esphome
 
         void Config::Frontend::send(Supla::WebSender *sender)
         {
-            auto div = DivElement({
-                                      {"script", frontend_script},
-                                      {"h3", "wM-Bus Meters"},
-                                      {"button", "New Meter", {}, {{"type", "button"}, {"id", "add_meter"}}},
-                                  },
-                                  {
-                                      {"class", "box"},
-                                  });
+            auto box = sender->tag("div");
+            box.attr("class", "box");
+            box.body([&]() {
+                sender->tag("script").body(frontend_script);
+                sender->tag("h3").body("wM-Bus Meters");
+                auto btn = sender->tag("button");
+                btn.attr("type", "button");
+                btn.attr("id", "add_meter");
+                btn.body("New Meter");
 
-            auto entries = Config::pull();
-            if (entries.empty())
-                entries.emplace_back();
+                auto entries = Config::pull();
+                if (entries.empty())
+                    entries.emplace_back();
 
-            for (const auto &entry : entries)
-                div.children.insert(std::prev(div.children.end()), entry.as_html());
-
-            div.render(sender);
+                for (const auto &entry : entries)
+                    entry.renderHtml(sender);
+            });
         }
 
         bool Config::Frontend::handleResponse(const char *key, const char *value)

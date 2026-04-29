@@ -6,10 +6,9 @@
 #include "esphome/core/log.h"
 
 #include "supla/network/html_element.h"
+#include "supla/network/web_sender.h"
 #include "supla/storage/storage.h"
 #include "supla/storage/config.h"
-
-#include "html_elements.h"
 
 namespace esphome
 {
@@ -46,7 +45,14 @@ namespace esphome
 
             void send(Supla::WebSender *sender) override
             {
-                this->as_html().render(sender);
+                auto current = this->load_from_storage();
+                sender->labeledField(this->key, this->label, [&]() {
+                    sender->selectInput(this->key, this->key, [&]() {
+                        for (const auto &option : this->options)
+                            sender->selectOption(option.second, option.second,
+                                                 option.first == current);
+                    });
+                });
             }
 
             bool handleResponse(const char *key, const char *value) override
@@ -63,15 +69,6 @@ namespace esphome
             const char *key;
             const char *label;
             std::map<T, const char *> options;
-
-            HTMLElement as_html() const
-            {
-                std::list<SelectElement::Option> html_options;
-                for (const auto &option : this->options)
-                    html_options.emplace_back(option.second, option.first == this->load_from_storage());
-
-                return create_form_field(SelectElement{std::move(html_options)}, this->label);
-            }
 
             void store(const char *val)
             {

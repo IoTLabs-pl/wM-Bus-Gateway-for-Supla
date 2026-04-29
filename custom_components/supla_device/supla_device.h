@@ -18,6 +18,8 @@ namespace esphome
             void dump_config() override;
             float get_setup_priority() const override;
 
+            void start_loop();
+
         protected:
             enum ConfigMode : uint8_t
             {
