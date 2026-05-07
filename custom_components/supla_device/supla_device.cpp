@@ -51,6 +51,7 @@ namespace esphome
 
             SuplaDevice.setSuplaCACert(suplaCACert);
             SuplaDevice.setSupla3rdPartyCACert(supla3rdCACert);
+            SuplaDevice.setInitialMode(Supla::InitialMode::StartWithCfgModeThenOffline);
 
 #ifdef SUPLA_DEVICE_NAME
             SuplaDevice.setName(SUPLA_DEVICE_NAME);
