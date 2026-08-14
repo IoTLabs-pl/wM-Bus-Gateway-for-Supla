@@ -44,7 +44,7 @@ wmbus_common:
 wmbus_meter: []
 
 supla_device:
-  version: v26.4
+  version: v26.8
 
 supla_wmbus:
 
