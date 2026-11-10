@@ -31,7 +31,7 @@ CONFIG_SCHEMA = cv.All(
             cv.GenerateID(CONF_VERSION): cv.string_strict,
         }
     ),
-    cv.only_with_esp_idf,
+    cv.only_with_framework("esp-idf"),
 )
 
 

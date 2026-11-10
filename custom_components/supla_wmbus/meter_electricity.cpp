@@ -41,7 +41,7 @@ namespace esphome
 
         bool ElectricityMeter::can_build_from(const ConfigEntry *ce)
         {
-            return ce && ce->meter_type() == MeterType::ElectricityMeter;
+            return ce && ce->meter_kind() == MeterKind::ELECTRICITY;
         }
     }
 }

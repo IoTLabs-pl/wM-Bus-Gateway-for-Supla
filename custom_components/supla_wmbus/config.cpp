@@ -5,8 +5,9 @@
 #include "supla/storage/config.h"
 #include "supla/storage/storage.h"
 
+#include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
-#include "esphome/components/wmbus_common/component.h"
+#include "esphome/components/wmbus_common/meter.h"
 
 #include "resources.h"
 #include "meter_impulse.h"
@@ -85,8 +86,8 @@ namespace esphome
                 sender->formField([&]() {
                     sender->labelFor("", "Driver");
                     sender->selectInput(nullptr, nullptr, [&]() {
-                        for (const auto &driver_name : wmbus_common::driver_names)
-                            sender->selectOption(driver_name.c_str(), driver_name.c_str(), driver_name == this->driver());
+                        for (const auto &driver : DRIVERS)
+                            sender->selectOption(driver.name, driver.name, this->driver() == driver.name);
                     });
                 });
 
@@ -132,11 +133,13 @@ namespace esphome
             return {result.cbegin(), result.cend()};
         }
 
-        MeterType ConfigEntry::meter_type() const
+        MeterKind ConfigEntry::meter_kind() const
         {
-            auto di = lookupDriver(this->driver());
-            auto type = (!this->id().empty() && di) ? di->type() : MeterType::UnknownMeter;
-            return type;
+            if (!this->id().empty())
+                for (const auto &driver : DRIVERS)
+                    if (this->driver() == driver.name)
+                        return driver.kind;
+            return MeterKind::NONE;
         }
 
         MeterBase *ConfigEntry::build_meter(wmbus_radio::Radio *radio, wmbus_gateway::DisplayManager *display_manager) const
@@ -147,27 +150,42 @@ namespace esphome
             else if (ElectricityMeter::can_build_from(this))
                 meter = new ElectricityMeter{this};
 
-            if (meter)
+            if (!meter)
             {
-                auto id = this->id();
-                id = std::string(8 - id.length(), '0') + id;
-
-                meter->set_meter_params(
-                    id,
-                    this->driver(),
-                    this->key());
-
-                auto &sensors = meter->create_sensors(this);
-
-                if (radio)
-                    meter->set_radio(radio);
-
-                if (display_manager)
-                    for (auto &sensor : sensors)
-                        display_manager->add_sensor(&sensor);
-
-                ESP_LOGD(TAG, "Built meter with ID: %s, Driver: %s", id.c_str(), this->driver().c_str());
+                // e.g. a driver dropped from wmbus_common since the meter was stored
+                ESP_LOGW(TAG, "Skipping meter %s: no Supla channel for driver '%s'", this->id().c_str(), this->driver().c_str());
+                return nullptr;
             }
+
+            // DRIVERS lists only registered drivers, so the spec is always found
+            const wmbus::DriverSpec *spec = nullptr;
+            for (const auto *s : wmbus::registered_drivers)
+                if (this->driver() == s->name)
+                    spec = s;
+
+            std::optional<std::array<uint8_t, 16>> key;
+            if (!this->key().empty())
+            {
+                key.emplace();
+                if (!parse_hex(this->key(), key->data(), key->size()))
+                {
+                    ESP_LOGW(TAG, "Ignoring invalid key of meter %s", this->id().c_str());
+                    key.reset();
+                }
+            }
+
+            meter->set_driver(spec, strtoul(this->id().c_str(), nullptr, 16), key);
+
+            auto &sensors = meter->create_sensors(this);
+
+            if (radio)
+                meter->set_radio(radio);
+
+            if (display_manager)
+                for (auto &sensor : sensors)
+                    display_manager->add_sensor(&sensor);
+
+            ESP_LOGD(TAG, "Built meter with ID: %s, Driver: %s", meter->get_id().c_str(), this->driver().c_str());
             return meter;
         }
 

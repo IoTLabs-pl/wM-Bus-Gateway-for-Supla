@@ -25,17 +25,18 @@ namespace esphome
         int ImpulseCounter::get_supla_fcn(const ConfigEntry *ce)
         {
             uint16_t fcn = 0;
-            switch (ce->meter_type())
+            switch (ce->meter_kind())
             {
-            case MeterType::GasMeter:
+            case MeterKind::GAS:
                 fcn = SUPLA_CHANNELFNC_IC_GAS_METER;
                 break;
-            case MeterType::WaterMeter:
+            case MeterKind::WATER:
                 fcn = SUPLA_CHANNELFNC_IC_WATER_METER;
                 break;
-            case MeterType::HeatMeter:
-            case MeterType::HeatCoolingMeter:
+            case MeterKind::HEAT:
                 fcn = SUPLA_CHANNELFNC_IC_HEAT_METER;
+                break;
+            default:
                 break;
             }
 

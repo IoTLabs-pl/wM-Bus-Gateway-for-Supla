@@ -136,7 +136,7 @@ namespace esphome
             case STATUS_UNKNOWN_ERROR:
             default:
                 this->status_clear_warning();
-                this->status_set_error(status_str.c_str());
+                this->status_set_error(LOG_STR("SuplaDevice error"));
                 break;
             }
         };

@@ -2,10 +2,13 @@ from esphome import codegen as cg
 from esphome import config_validation as cv
 from esphome.core.entity_helpers import register_unit_of_measurement
 from esphome.components.script import Script
-from esphome.components.wmbus_common.driver_loader.units import units_dict
+from esphome.components.wmbus_common.drivers.loader import UNITS, DriverManager
+from esphome.components.wmbus_common.drivers.loader.xmq import parse_xmq
 from esphome.components.wmbus_gateway import DisplayManager
 from esphome.components.wmbus_radio import RadioComponent
 from esphome.const import CONF_ID
+from esphome.cpp_generator import RawStatement
+from esphome.helpers import cpp_string_escape
 
 AUTO_LOAD = ["wmbus_meter"]
 DEPENDENCIES = ["supla_device"]
@@ -14,6 +17,15 @@ CODEOWNERS = ["@kubasaw"]
 CONF_RADIO_ID = "radio_id"
 CONF_DISPLAY_MANAGER_ID = "manager_id"
 CONF_BLINKER_SCRIPT_ID = "blinker_script_id"
+
+# Driver meter_type -> MeterKind; drivers of other types have no Supla channel
+METER_KINDS = {
+    "WaterMeter": "WATER",
+    "GasMeter": "GAS",
+    "HeatMeter": "HEAT",
+    "HeatCoolingMeter": "HEAT",
+    "ElectricityMeter": "ELECTRICITY",
+}
 
 SuplaWMBusComponent = cg.esphome_ns.namespace("supla_wmbus_gateway").class_(
     "Component", cg.Component
@@ -29,6 +41,16 @@ CONFIG_SCHEMA = cv.Schema(
 )
 
 
+def table(name, element, rows):
+    # Defines the span declared extern in config.h
+    rows = ", ".join(f"{{{', '.join(row)}}}" for row in rows)
+    return RawStatement(
+        f"static const esphome::supla_wmbus_gateway::{element} {name}_[] = {{{rows}}};\n"
+        f"const std::span<const esphome::supla_wmbus_gateway::{element}> "
+        f"esphome::supla_wmbus_gateway::{name}{{{name}_}};"
+    )
+
+
 async def to_code(config):
     cg.add_define("USE_WMBUS_METER_SENSOR")
     cg.add_define("USE_ENTITY_UNIT_OF_MEASUREMENT")
@@ -42,7 +64,32 @@ async def to_code(config):
     cg.add(var.set_display_manager(display_manager))
     cg.add(var.set_blinker_script(blinker_script))
 
-    for u in units_dict().values():
-        register_unit_of_measurement(u)
+    # The driver loader drops meter_type, so it is read from the XMQ source
+    drivers = (
+        (d.name, parse_xmq(d.source_path.read_text())["driver"]["meter_type"])
+        for d in DriverManager.registered_drivers
+    )
+    cg.add_global(
+        table(
+            "DRIVERS",
+            "DriverInfo",
+            (
+                (cpp_string_escape(name), f"esphome::supla_wmbus_gateway::MeterKind::{METER_KINDS[meter_type]}")
+                for name, meter_type in drivers
+                if meter_type in METER_KINDS
+            ),
+        )
+    )
+
+    cg.add_global(
+        table(
+            "UNITS",
+            "UnitInfo",
+            (
+                (cpp_string_escape(u.symbol), str(register_unit_of_measurement(u.display)))
+                for u in UNITS.values()
+            ),
+        )
+    )
 
     await cg.register_component(var, config)
