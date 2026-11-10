@@ -1,5 +1,12 @@
 {
   "extends": ["config:recommended"],
+  "packageRules": [
+    {
+      "description": "v26.8+ needs ESP-IDF 6 (mbedTLS 4), which ESPHome and wmbus_common do not support yet",
+      "matchPackageNames": ["SUPLA/supla-device"],
+      "allowedVersions": "<26.8"
+    }
+  ],
   "customManagers": [
     {
       "managerFilePatterns": ["wmbus_gateway.yaml"],
