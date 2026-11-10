@@ -4,7 +4,6 @@
 
 #include "esphome/core/log.h"
 #include "esphome/core/application.h"
-#include "esphome/components/wmbus_common/meters.h"
 
 namespace esphome
 {
@@ -35,7 +34,7 @@ namespace esphome
       switch (this->led_mode_.load_from_storage())
       {
       case LEDMode::LED_ALWAYS:
-        this->radio->add_frame_handler(std::bind(&Component::blink, this));
+        this->radio->on_frame([this](wmbus_radio::Frame *) { this->blink(); });
         break;
       case LEDMode::LED_MATCH:
         for (const auto meter : this->meters)

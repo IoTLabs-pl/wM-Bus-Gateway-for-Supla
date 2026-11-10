@@ -35,10 +35,12 @@ namespace esphome
                 bool indexable = (placeholder_position != std::string::npos && callback.indexable);
                 auto cnt = indexable ? 3 : 1;
 
-                std::string unit_str;
-                Unit unit;
-                extractUnit(field, &unit_str, &unit);
-                unit_str = unitToStringHR(unit);
+                // Field names end with the unit symbol: total_m3
+                uint8_t uom = 0;
+                auto suffix = field.substr(field.rfind('_') + 1);
+                for (const auto &unit : UNITS)
+                    if (suffix == unit.symbol)
+                        uom = unit.uom;
 
                 for (uint8_t j = 1; j <= cnt; ++j)
                 {
@@ -55,7 +57,7 @@ namespace esphome
                     sensors_.emplace_back(
                         sensor_name,
                         field_name,
-                        unit_str,
+                        uom,
                         [this,
                          idx = j - 1,
                          &setter = callback.setter,

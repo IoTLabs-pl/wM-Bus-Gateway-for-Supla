@@ -15,7 +15,7 @@ namespace esphome
         public:
             Sensor(const std::string &sensor_name,
                    const std::string &field_name,
-                   const std::string &unit_of_measurement,
+                   uint8_t uom,
                    std::function<void(float)> &&callback);
 
         protected:
