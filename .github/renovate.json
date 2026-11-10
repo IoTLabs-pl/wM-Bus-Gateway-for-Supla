@@ -24,6 +24,19 @@
       "matchStrings": ["supla_device.{ \"currentValue\": version }"],
       "packageNameTemplate": "SUPLA/supla-device",
       "datasourceTemplate": "github-releases"
+    },
+    {
+      "managerFilePatterns": [
+        ".github/workflows/build_release.yaml",
+        ".github/workflows/check_build.yaml"
+      ],
+      "fileFormat": "yaml",
+      "customType": "jsonata",
+      "matchStrings": [
+        "jobs.build.steps[id=\"build_firmware\"].{\"currentValue\":with.version}"
+      ],
+      "packageNameTemplate": "esphome/esphome",
+      "datasourceTemplate": "github-releases"
     }
   ]
 }

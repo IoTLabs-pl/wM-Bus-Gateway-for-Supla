@@ -4,10 +4,14 @@ on:
     types:
       - published
 jobs:
-  build_and_upload:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        hw_variant:
+          - gen1
+          - gen2
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -15,18 +19,37 @@ jobs:
         id: build_firmware
         uses: esphome/build-action@v8.1.0
         with:
+          version: "2026.10.1"
           yaml-file: wmbus_gateway.yaml
+          substitutions: |
+            hw_variant=${{ matrix.hw_variant }}
           complete-manifest: true
       - name: Alter `new_install_prompt_erase` manifest field
-        env: 
-          BAK_FILE: "${{ steps.build_firmware.outputs.name }}/manifest.json.bak"
-          FILE: "${{ steps.build_firmware.outputs.name }}/manifest.json"
+        working-directory: ${{ steps.build_firmware.outputs.name }}
         run: |
-          mv "$FILE" "$BAK_FILE"
-          jq '.new_install_prompt_erase = true' "$BAK_FILE" > "$FILE"
+          jq '.new_install_prompt_erase = true' manifest.json > ${{ steps.build_firmware.outputs.name }}.manifest.json
+          rm manifest.json
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: firmware-build-${{ matrix.hw_variant }}
+          path: |
+            ${{ steps.build_firmware.outputs.name }}/*.factory.bin
+            ${{ steps.build_firmware.outputs.name }}/*.manifest.json
+
+  upload:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: release-artifacts
       - name: Upload binaries to release
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            ${{ steps.build_firmware.outputs.name }}/*.factory.bin
-            ${{ steps.build_firmware.outputs.name }}/manifest.json
+            release-artifacts/**/*.factory.bin
+            release-artifacts/**/*.manifest.json
