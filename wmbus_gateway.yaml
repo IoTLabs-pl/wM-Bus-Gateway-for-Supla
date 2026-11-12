@@ -2,7 +2,7 @@ substitutions:
   hw_variant: gen1
 
 packages:
-  wmbus_gateway: github://IoTLabs-pl/wM-Bus-Gateway/packages/wmbus_gateway_${hw_variant}.yaml@v1.2.3
+  wmbus_gateway: github://IoTLabs-pl/wM-Bus-Gateway/packages/wmbus_gateway_${hw_variant}.yaml@v1.2.4
 
 external_components:
   - source:
