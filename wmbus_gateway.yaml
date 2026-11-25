@@ -13,7 +13,7 @@ esphome:
   name: supla-wmbus-${hw_variant}
   min_version: 2026.10.0
   project:
-    version: v1.1.1-supla
+    version: v1.2.0-supla
 
 esp32:
   framework:
