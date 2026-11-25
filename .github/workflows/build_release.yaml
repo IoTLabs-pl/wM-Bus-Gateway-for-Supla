@@ -34,7 +34,7 @@ jobs:
         with:
           name: firmware-build-${{ matrix.hw_variant }}
           path: |
-            ${{ steps.build_firmware.outputs.name }}/*.factory.bin
+            ${{ steps.build_firmware.outputs.name }}/*.bin
             ${{ steps.build_firmware.outputs.name }}/*.manifest.json
 
   upload:
@@ -51,5 +51,5 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            release-artifacts/**/*.factory.bin
+            release-artifacts/**/*.bin
             release-artifacts/**/*.manifest.json
