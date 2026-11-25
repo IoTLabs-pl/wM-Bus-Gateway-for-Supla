@@ -21,41 +21,58 @@ This repository contains the source code for the [**wM-Bus Gateway**](http://git
 
 ---
 
-## 🏠 Recommended Integration Workflow
+## 🏠 Getting Started with Supla
 
-### 📶 Wi-Fi Configuration
+You need:
 
-1. **Power up** the device with a USB cable. You may use your computer or a USB power adapter.
-2. Connect to the device's Wi-Fi network named `WM-BUS-GATEWAY-xxxxxx`.
+- a [Supla Cloud](https://cloud.supla.org) account,
+- a phone or computer with Wi-Fi.
 
-   > 💡 **Tip 1:**  
-   >  Device's web interface IP and network SSID are presented on the display connection page.
+### 1. Enable device registration
 
-   > 💡 **Tip 2:**  
-   >  If you are using a mobile device, you may need to disable the mobile data connection to access the device's web interface.
+Log in to Supla Cloud. On **My SUPLA**, click the **I/O devices registration** notice in the top right corner to turn it on.
 
-3. Open a web browser and go to `http://191.168.4.1`
-4. Specify your **Wi-Fi network credentials** (SSID and password) in the form.
-5. **(Optional)** If you do not have your wM-Bus meters configured yet, you may also set **Config Mode** option to `ALWAYS ON` to be able to reach the device's web interface after it connects to your Wi-Fi network. Its local IP address will be shown on the display connection page.
-6. Click **Save & Restart**. Device will reboot and connect to your Wi-Fi network.
+### 2. Connect the gateway to Wi-Fi and Supla
 
-### ⏱️ Meters Configuration
+Connect the antenna, then plug the gateway into a computer or a USB power adapter. Connect your phone or computer to the gateway's Wi-Fi network `WM-BUS-GATEWAY-…` and open `http://192.168.4.1`. You'll see the network name and address on the gateway's display.
 
-1. Open the device's web interface. The **wM-Bus Meters** list shows your meters first, then the meters the device hears, strongest signal first, each with its detected driver. Meters send their readings every few seconds to a few minutes, so give it a while and reload the page.
+> [!TIP]
+> On a phone, turn off mobile data if the page does not open.
 
-   > 💡 **Tip:**  
-   > Find your meter by the number printed on it. Click its **decoder** link to analyze its last datagram in the [IoTLabs decoder](https://iotlabs.pl/decoder), e.g. to check your decryption key.
+Enter the name and password of your Wi-Fi network.
 
-2. Switch on your meter. If your meter is encrypted, enter its key in hex-string format.
+![Wi-Fi settings on the gateway's page](docs/gateway-wifi.webp)
 
-   > 💡 **Tip:**  
-   > If you don't know your meter decryption key, you may try to use `00000000000000000000000000000000` (32 zeroes) as a key.
+Under **Supla Settings**, enter the e-mail of your Supla Cloud account and set **Config Mode** to `ALWAYS ON` so you can open this page from your home network in step 4. Click **Save & Restart**.
 
-3. Press **Save & Restart** button to save the configuration and restart the device.  
-   The device picks the readings for the Supla channel itself: the meter total for water, gas and heat meters; energy, power, voltage, current and frequency (per phase, if the meter sends them) for electricity meters. After the next datagram from your meter, the list shows these readings under the meter, or the decoding error, e.g. `decryption_failed` for a wrong key.  
-   After a few seconds, the device should connect to **Supla Cloud** with the new configuration and you should see the device in your Supla app.
-   > 💡 **Tip:**  
-   > All other configuration (disabling non-used phases for one-phase meters, setting price per usage, setting units of measurement, etc.) can be done in the **Supla Cloud**.
+![Supla settings on the gateway's page](docs/gateway-supla.webp)
+
+### 3. Find the gateway in Supla Cloud
+
+The gateway joins your Wi-Fi network and registers in Supla Cloud. It will show up on **My SUPLA** as **CONNECTED**.
+
+![The gateway in Supla Cloud](docs/cloud-devices.webp)
+
+### 4. Choose your meters
+
+Open the gateway's page again, now at its address in your local network (shown on the gateway's display). The **wM-Bus Meters** list shows every meter the gateway hears, strongest signal first, along with its detected driver. Meters send their readings every few seconds to a few minutes, so give it a moment and reload the page. Find yours by the serial number printed on the meter.
+
+Enable your meter on the list. If its transmission is encrypted, enter its key — you can get it from your utility company or the meter's installer. The **decoder** link opens the meter's last frame in the [IoTLabs decoder](https://iotlabs.pl/decoder), which is handy for testing the key. Click **Save & Restart**.
+
+![The meters the gateway hears](docs/gateway-meters.webp)
+
+### 5. Check the readings
+
+After the next frame arrives, the gateway's page shows the readings below the meter — or a decoding error, such as `decryption_failed` if the key is wrong. The gateway picks the right readings automatically:
+
+- for water, gas, and heat meters: the meter total,
+- for electricity meters: energy, power, voltage, current, and frequency (per phase, if the meter reports them).
+
+![A configured meter with its readings](docs/gateway-readings.webp)
+
+Each meter appears as its own channel under the gateway in Supla Cloud and the Supla app, where you can set prices, units, or hide unused phases for single-phase meters.
+
+![The meter's channel in Supla Cloud](docs/cloud-channel.webp)
 
 ---
 
