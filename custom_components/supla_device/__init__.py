@@ -88,6 +88,15 @@ async def to_code(config):
         )
         cmake_file.write_text(content)
 
+    # ESPHome's network component creates the default event loop before Supla does
+    netif = git_path / "extras/porting/esp-idf/esp_idf_network_common.cpp"
+    netif.write_text(
+        netif.read_text().replace(
+            "ESP_ERROR_CHECK(esp_event_loop_create_default());",
+            "esp_event_loop_create_default();",
+        )
+    )
+
     add_idf_component(
         name=COMPONENT_NAME,
         path=str(component_path),
