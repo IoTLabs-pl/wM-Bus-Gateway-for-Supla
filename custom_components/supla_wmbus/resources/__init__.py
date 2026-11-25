@@ -7,7 +7,8 @@ def generate_resources():
     variables = {
         "frontend_script": post(
             "https://www.toptal.com/developers/javascript-minifier/api/raw",
-            data={"input": Path(__file__).parent.joinpath("frontend.js").read_text()},
+            # Scoped, so the minifier also renames the top-level functions
+            data={"input": f"(()=>{{{Path(__file__).parent.joinpath('frontend.js').read_text()}}})();"},
         ).text,
     }
 
@@ -16,7 +17,7 @@ def generate_resources():
     )
 
     c_content = "".join(
-        f'const char* {var} = "{content.replace('"', '\\"')}";\n'
+        f'const char* {var} = "{content.replace('\\', '\\\\').replace('"', '\\"')}";\n'
         for var, content in variables.items()
     )
 

@@ -31,6 +31,8 @@ namespace esphome
           this->meters.push_back(meter);
       }
 
+      this->radio->on_frame([this](wmbus_radio::Frame *frame) { this->received_meters_.handle_frame(frame); });
+
       switch (this->led_mode_.load_from_storage())
       {
       case LEDMode::LED_ALWAYS:

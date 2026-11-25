@@ -41,39 +41,20 @@ This repository contains the source code for the [**wM-Bus Gateway**](http://git
 
 ### ⏱️ Meters Configuration
 
-1. Connect your device to the computer (or any other device able to communicate with USB-Serial port) using a USB cable.
-2. Open your serial console (terminal) and connect to device with `115200 8N1` settings.
-   > 💡 **Tip 1:**  
-   > Dedicated drivers may be required for your operating system to recognize the device.
-   
-   > 💡 **Tip 2:**  
-   > If you don't have a serial console installed you can use [Web Flasher](https://iotlabs.pl/tools) or [ESP Web Tools](https://esphome.github.io/esp-web-tools/). Use the **Logs & Console** feature from the popup menu. If you don't see device logs in the console, reset device by pressing the **bottom button** on the device.
-3. Wait for the device to receive the wM-Bus datagram from your meter. You should see logs like this:
-   ```
-   [16:29:10][W][main:057]: Meter ID: 12345678...
-   [16:29:10][W][main:060]: Frame: https://wmbusmeters.org/analyze/be44ed1...
-   ```
-4. Click or copy and paste the link from the logs to your browser to analyze the received datagram. At [wmbusmeters.org](https://wmbusmeters.org/analyze/) you will be able to check your decryption key (if your meter is encrypted) and see all **data fields available** to decode from the datagram.
+1. Open the device's web interface. The **wM-Bus Meters** list shows your meters first, then the meters the device hears, strongest signal first, each with its detected driver. Meters send their readings every few seconds to a few minutes, so give it a while and reload the page.
 
-5. In the device configuration page, configure the meter by setting appropriate `ID`, `Driver` and `Key` in hex-string format (if your meter is encrypted) and click **Save**. After page reload, the device will display an extended form based on the selected driver media type.
+   > 💡 **Tip:**  
+   > Find your meter by the number printed on it. Click its **decoder** link to analyze its last datagram in the [IoTLabs decoder](https://iotlabs.pl/decoder), e.g. to check your decryption key.
+
+2. Switch on your meter. If your meter is encrypted, enter its key in hex-string format.
 
    > 💡 **Tip:**  
    > If you don't know your meter decryption key, you may try to use `00000000000000000000000000000000` (32 zeroes) as a key.
 
-6. **For flow meters**:  
-   In the form's `Impulse Counter` field, type the name of the field you want to use as a Supla channel value, for example `total_m3`.
-
-   **For electricity meters**:  
-   In the form's additional fields, specify names of the wM-Bus telegram fields you want to use as data for specific Supla channel attributes. For example, you may use `total_energy_consumption_kwh` for *Forward Active Energy* field and `current_power_consumption_kw` for *Active Power* field.
-    > 💡 **Tip 1:**  
-    > Typically, your wM-Bus Meter does not specify all fields needed for full Supla channel attributes (if you want all of them to be available, google for **Zamel MEW-01**), so most of the fields will be empty.
-
-    > 💡 **Tip 2:**  
-    > If your meter is three-phase, you may use `%d` as a placeholder in the field name. For example, you may use `voltage_at_phase_%d` in the *Voltage* field, and it will be automatically replaced with `voltage_at_phase_1`, `voltage_at_phase_2`, and `voltage_at_phase_3` for each phase.
-
-7. Press **Save & Restart** button to save the configuration and restart the device.  
-   After a few seconds, the device should connect to **Supla Cloud** with the new configuration and you should see the device in your Supla app. 
-   > 💡 **Tip 1:**  
+3. Press **Save & Restart** button to save the configuration and restart the device.  
+   The device picks the readings for the Supla channel itself: the meter total for water, gas and heat meters; energy, power, voltage, current and frequency (per phase, if the meter sends them) for electricity meters. After the next datagram from your meter, the list shows these readings under the meter, or the decoding error, e.g. `decryption_failed` for a wrong key.  
+   After a few seconds, the device should connect to **Supla Cloud** with the new configuration and you should see the device in your Supla app.
+   > 💡 **Tip:**  
    > All other configuration (disabling non-used phases for one-phase meters, setting price per usage, setting units of measurement, etc.) can be done in the **Supla Cloud**.
 
 ---

@@ -8,12 +8,19 @@ namespace esphome
     {
         static const char *TAG = "supla.wmbus.meter_impulse";
 
-        const std::vector<CallbackMetadata> ImpulseCounter::callback_metadata = {
-            NON_INDEXABLE_CB(ImpulseCounter, "Impulse Counter", setCounter, 1e3f),
+        const std::vector<CallbackMetadata> ImpulseCounter::volume_callbacks = {
+            NON_INDEXABLE_CB(ImpulseCounter, "Impulse Counter", setCounter, 1e3f,
+                             "total_m3", "target_m3"),
+        };
+
+        const std::vector<CallbackMetadata> ImpulseCounter::energy_callbacks = {
+            NON_INDEXABLE_CB(ImpulseCounter, "Impulse Counter", setCounter, 1e3f,
+                             "total_kwh", "total_energy_consumption_kwh", "total_energy_kwh", "total_heating_kwh",
+                             "total_heat_energy_kwh", "heat_kwh", "target_kwh"),
         };
 
         ImpulseCounter::ImpulseCounter(const ConfigEntry *ce)
-            : MeterBase(this->callback_metadata)
+            : MeterBase(ce->meter_kind() == MeterKind::HEAT ? energy_callbacks : volume_callbacks)
         {
             auto supla_fcn = get_supla_fcn(ce);
 
@@ -60,11 +67,6 @@ namespace esphome
 
             *size = sizeof(c);
             *(TChannelConfig_ImpulseCounter *)channelConfig = c;
-        }
-
-        bool ImpulseCounter::can_build_from(const ConfigEntry *ce)
-        {
-            return ce && get_supla_fcn(ce) != 0;
         }
     }
 }

@@ -1,10 +1,8 @@
 #pragma once
 
 #include <list>
-#include <memory>
 #include <span>
 #include <string>
-#include <vector>
 
 #include "esphome/components/wmbus_gateway/display_manager.h"
 
@@ -12,6 +10,7 @@
 #include "supla/network/web_sender.h"
 
 #include "meter_base.h"
+#include "received_meters.h"
 
 namespace esphome
 {
@@ -42,43 +41,37 @@ namespace esphome
         extern const std::span<const DriverInfo> DRIVERS;
         extern const std::span<const UnitInfo> UNITS;
 
-        class ConfigEntry : public std::vector<std::string>
+        struct ConfigEntry
         {
-            static std::vector<std::string> split_string(std::string serialized, size_t minimum_size = 0);
+            std::string id;
+            std::string driver;
+            std::string key;
 
-            const std::vector<CallbackMetadata> &get_callback_metadata() const;
-
-            const std::string &id() const;
-            const std::string &driver() const;
-            const std::string &key() const;
-
-        public:
-            ConfigEntry(const std::string &data = "");
-            void renderHtml(Supla::WebSender *sender) const;
-            std::string serialized() const;
+            static ConfigEntry parse(const std::string &serialized);
+            void renderHtml(Supla::WebSender *sender, const ReceivedMeters &received,
+                            const ReceivedMeters::Entry *heard, bool added) const;
+            std::string normalized_id() const;
             MeterBase *build_meter(wmbus_radio::Radio *radio, wmbus_gateway::DisplayManager *display_manager) const;
             MeterKind meter_kind() const;
+            const wmbus::DriverSpec *spec() const;
         };
 
-        class Config
+        class Config : public Supla::HtmlElement
         {
-            class Frontend : public Supla::HtmlElement
-            {
-            public:
-                Frontend() : Supla::HtmlElement(Supla::HTML_SECTION_PROTOCOL) {};
-                void send(Supla::WebSender *sender) override;
-                bool handleResponse(const char *key, const char *value) override;
-                void onProcessingEnd() override;
-
-            protected:
-                size_t post_data_counter_ = 0;
-            };
-
         public:
+            explicit Config(const ReceivedMeters &received)
+                : Supla::HtmlElement(Supla::HTML_SECTION_PROTOCOL), received_(received) {}
             static std::list<ConfigEntry> pull();
+            void send(Supla::WebSender *sender) override;
+            bool handleResponse(const char *key, const char *value) override;
+            void onProcessingEnd() override;
 
         protected:
-            Frontend frontend_;
+            void store_pending();
+
+            const ReceivedMeters &received_;
+            std::string pending_;
+            size_t post_data_counter_ = 0;
         };
 
     } // namespace supla_wmbus_gateway
