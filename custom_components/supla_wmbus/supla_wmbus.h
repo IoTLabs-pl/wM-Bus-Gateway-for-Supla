@@ -8,6 +8,7 @@
 
 #include "config.h"
 #include "meter_base.h"
+#include "received_meters.h"
 
 namespace esphome
 {
@@ -38,7 +39,8 @@ namespace esphome
             std::list<MeterBase *> meters;
             wmbus_radio::Radio *radio;
 
-            Config config_;
+            ReceivedMeters received_meters_{this->meters};
+            Config config_{this->received_meters_};
             wmbus_gateway::DisplayManager *display_manager;
         };
 

@@ -11,8 +11,8 @@ namespace esphome
         {
         public:
             ImpulseCounter(const ConfigEntry *ce);
-            static bool can_build_from(const ConfigEntry *ce);
-            static const std::vector<CallbackMetadata> callback_metadata;
+            static const std::vector<CallbackMetadata> volume_callbacks;
+            static const std::vector<CallbackMetadata> energy_callbacks;
 
             Supla::ApplyConfigResult applyChannelConfig(TSD_ChannelConfig *result, bool) override;
             void fillChannelConfig(void *channelConfig, int *size, uint8_t) override;

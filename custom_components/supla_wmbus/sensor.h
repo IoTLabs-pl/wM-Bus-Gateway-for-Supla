@@ -17,6 +17,7 @@ namespace esphome
                    const std::string &field_name,
                    uint8_t uom,
                    std::function<void(float)> &&callback);
+            const std::string &get_field_name() const { return this->field_name; }
 
         protected:
             std::string name_;
